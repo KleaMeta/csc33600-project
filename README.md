@@ -141,7 +141,7 @@ Many-to-many relationship tables connecting requests with equipment and ingredie
 | Column | Type | Description |
 |------|------|-------------|
 | request_id | integer (FK → request) | Associated request |
-| equipment_id | integer (FK → equipment) | Required equipment |
+| equipment_id | integer (FK → equipment) | Equipment |
 
 ---
 
@@ -150,7 +150,7 @@ Many-to-many relationship tables connecting requests with equipment and ingredie
 | Column | Type | Description |
 |------|------|-------------|
 | request_id | integer (FK → request) | Associated request |
-| ingredient_id | integer (FK → ingredients) | Required ingredient |
+| ingredient_id | integer (FK → ingredients) | Ingredient |
 
 ---
 
