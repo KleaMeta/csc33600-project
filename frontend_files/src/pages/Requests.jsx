@@ -1,7 +1,7 @@
 function Requests({ submissions, handleApprove, handleDeny, requestError }) {
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-4">
-      <h1 className="text-3xl font-bold mb-6">Submitted Requests</h1>
+      <h1 className="text-3xl font-bold mb-6">Open requests</h1>
 
       {requestError && <p className="text-red-500">{requestError}</p>}
 
