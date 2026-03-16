@@ -23,33 +23,6 @@ app.add_middleware(
 )
 
 
-def get_or_create_lookup_id(supabase, table_name, id_column, name_column, value):
-    """Return the ID for a named lookup value, inserting it first if needed."""
-
-    existing_row = (
-        supabase.table(table_name)
-        .select(id_column)
-        .eq(name_column, value)
-        .limit(1)
-        .execute()
-    )
-
-    if existing_row.data:
-        return existing_row.data[0][id_column]
-
-    next_id = get_next_integer_id(supabase, table_name, id_column)
-    inserted_row = (
-        supabase.table(table_name)
-        .insert({id_column: next_id, name_column: value})
-        .execute()
-    )
-
-    if not inserted_row.data:
-        raise RuntimeError(f"Could not insert into {table_name}.")
-
-    return inserted_row.data[0][id_column]
-
-
 def get_next_integer_id(supabase, table_name, id_column):
     """Return the next integer ID for a table that is not auto-incrementing."""
 
@@ -95,7 +68,7 @@ def create_request(request_data: HireChefRequest):
         "accepted": False,
         "price": float(request_data.price),
         "date": request_data.date,
-        "description": request_data.summary,
+        "summary": request_data.summary,
     }
 
     # Keep these lists separate so they are easy to map into join tables.
@@ -120,20 +93,11 @@ def create_request(request_data: HireChefRequest):
 
         request_id = request_result.data[0]["request_id"]
 
-        # Ensure each ingredient exists in the ingredients lookup table, then
-        # connect it to the request through the join table.
+        # Insert ingredient names directly into the request_ingredient join table.
         for ingredient_name in ingredient_rows:
-            ingredient_id = get_or_create_lookup_id(
-                supabase=supabase,
-                table_name="ingredients",
-                id_column="ingredient_id",
-                name_column="ingredient_name",
-                value=ingredient_name,
-            )
-
             request_ingredient_row = {
                 "request_id": request_id,
-                "ingredient_id": ingredient_id,
+                "ingredient_name": ingredient_name,
             }
             (
                 supabase.table("request_ingredient")
@@ -141,19 +105,11 @@ def create_request(request_data: HireChefRequest):
                 .execute()
             )
 
-        # Do the same for equipment.
+        # Insert equipment names directly into the request_equipment join table.
         for equipment_name in equipment_rows:
-            equipment_id = get_or_create_lookup_id(
-                supabase=supabase,
-                table_name="equipment",
-                id_column="equipment_id",
-                name_column="equipment_name",
-                value=equipment_name,
-            )
-
             request_equipment_row = {
                 "request_id": request_id,
-                "equipment_id": equipment_id,
+                "equipment_name": equipment_name,
             }
             (
                 supabase.table("request_equipment")
