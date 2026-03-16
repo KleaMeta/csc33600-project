@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 class HireChefRequest(BaseModel):
     """Shape of the request body sent by the React hire-a-chef form."""
 
-    name: str = Field(min_length=1)
     price: float
     date: str
     ingredients: list[str]

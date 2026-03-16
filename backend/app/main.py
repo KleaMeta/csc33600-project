@@ -95,14 +95,7 @@ def create_request(request_data: HireChefRequest):
         "accepted": False,
         "price": float(request_data.price),
         "date": request_data.date,
-    }
-
-    # These two fields exist in the UI payload, but the README schema does not yet
-    # define database columns for them. They are kept here so the backend still
-    # acknowledges the full form submission.
-    ignored_fields = {
-        "name": request_data.name,
-        "summary": request_data.summary,
+        "description": request_data.summary,
     }
 
     # Keep these lists separate so they are easy to map into join tables.
@@ -181,7 +174,6 @@ def create_request(request_data: HireChefRequest):
         "customer_id": assumed_customer_id,
         "request_id": request_id,
         "request_row": request_row,
-        "ignored_fields": ignored_fields,
         "ingredients_count": len(ingredient_rows),
         "equipment_count": len(equipment_rows),
     }
