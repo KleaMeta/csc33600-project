@@ -97,11 +97,10 @@ def create_request(request_data: HireChefRequest):
         "date": request_data.date,
     }
 
-    # These two fields exist in the UI payload, but the README schema does not yet
-    # define database columns for them. They are kept here so the backend still
+    # This field exists in the UI payload, but the README schema does not yet
+    # define a database column for it. It is kept here so the backend still
     # acknowledges the full form submission.
     ignored_fields = {
-        "name": request_data.name,
         "summary": request_data.summary,
     }
 

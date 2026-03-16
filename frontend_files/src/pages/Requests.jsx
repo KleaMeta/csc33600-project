@@ -15,9 +15,6 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
             className="border p-4 rounded-lg shadow-sm space-y-2"
           >
             <p>
-              <strong>Name:</strong> {req.name}
-            </p>
-            <p>
               <strong>Price:</strong> {req.price}
             </p>
             <p>

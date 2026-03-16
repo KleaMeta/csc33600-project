@@ -8,7 +8,6 @@ const BACKEND_URL = "http://127.0.0.1:8000";
 
 function ChefForm({ submissions, setSubmissions }) {
   const [formData, setFormData] = useState({
-    name: "",
     price: "",
     date: "",
     ingredients: [],
@@ -27,11 +26,6 @@ function ChefForm({ submissions, setSubmissions }) {
 
     const newErrors = {};
     let hasError = false;
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required.";
-      hasError = true;
-    }
 
     if (!formData.price || isNaN(formData.price)) {
       newErrors.price = "Price must be a number.";
@@ -93,7 +87,6 @@ function ChefForm({ submissions, setSubmissions }) {
         ]);
         setSubmitted(true);
         setFormData({
-          name: "",
           price: "",
           date: "",
           ingredients: [],
@@ -129,23 +122,6 @@ function ChefForm({ submissions, setSubmissions }) {
           className="space-y-4 p-8 bg-white rounded-l-lg shadow-lg"
         >
           <h1 className="text-3xl font-bold mb-4">Hire a Chef</h1>
-
-          <div>
-            <Label htmlFor="name">Username</Label>
-            <TextInput
-              id="name"
-              type="text"
-              placeholder="Jane Doe"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value.trimStart() })
-              }
-              required
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name}</p>
-            )}
-          </div>
 
           <div>
             <Label htmlFor="price">Price</Label>
