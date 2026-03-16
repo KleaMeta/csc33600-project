@@ -16,7 +16,7 @@ function Navbar({ submissions }) {
           style={{ backgroundColor: "#FFFFFF", color: "#FF5733" }}
           className="self-center whitespace-nowrap text-xl font-semibold text-blue-600"
         >
-          GlobalRatatioulle
+          Cheffy
         </span>
       </NavbarBrand>
 
