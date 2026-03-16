@@ -8,14 +8,53 @@ import Login from "./pages/Login.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Requests from "./pages/Requests.jsx";
 
+const BACKEND_URL = "http://127.0.0.1:8000";
+
 export default function App() {
   const [submissions, setSubmissions] = useState([]);
+  const [requestError, setRequestError] = useState("");
 
-  const handleApprove = (index) => {
-    const updated = submissions.map((req, i) =>
-      i === index ? { ...req, status: "approved" } : req,
-    );
-    setSubmissions(updated);
+  const handleApprove = async (index) => {
+    const requestToApprove = submissions[index];
+
+    if (!requestToApprove?.request_id) {
+      return;
+    }
+
+    setRequestError("");
+
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/requests/${requestToApprove.request_id}/approve`,
+        {
+          method: "PATCH",
+        },
+      );
+
+      if (!response.ok) {
+        let errorMessage = "Could not approve the request.";
+
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          }
+        } catch {
+          // Fall back to the generic message if the backend returns no JSON.
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const updated = submissions.map((req, i) =>
+        i === index
+          ? { ...req, status: "approved", accepted: true }
+          : req,
+      );
+      setSubmissions(updated);
+    } catch (error) {
+      setRequestError(error.message);
+    }
   };
 
   const handleDeny = (index) => {
@@ -51,6 +90,7 @@ export default function App() {
                   submissions={submissions}
                   handleApprove={handleApprove}
                   handleDeny={handleDeny}
+                  requestError={requestError}
                 />
               }
             />

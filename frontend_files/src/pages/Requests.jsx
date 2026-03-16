@@ -1,9 +1,9 @@
-import { useState } from "react";
-
-function Requests({ submissions, handleApprove, handleDeny }) {
+function Requests({ submissions, handleApprove, handleDeny, requestError }) {
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-4">
       <h1 className="text-3xl font-bold mb-6">Submitted Requests</h1>
+
+      {requestError && <p className="text-red-500">{requestError}</p>}
 
       {submissions.length === 0 ? (
         <p className="text-gray-600">No requests submitted yet.</p>
@@ -32,6 +32,11 @@ function Requests({ submissions, handleApprove, handleDeny }) {
             <p>
               <strong>Request Summary:</strong> {req.summary}
             </p>
+            {req.request_id && (
+              <p>
+                <strong>Request ID:</strong> {req.request_id}
+              </p>
+            )}
 
             {req.status === "approved" ? (
               <p className="text-green-700 font-bold mt-3">

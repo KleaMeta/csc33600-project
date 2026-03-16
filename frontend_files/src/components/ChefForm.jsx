@@ -4,6 +4,8 @@ import { HiCalendar } from "react-icons/hi";
 import TagInput from "./TagInput";
 import chefImage from "../assets/pexels-sebastian-coman-photography-1598188-3717880.jpg";
 
+const BACKEND_URL = "http://127.0.0.1:8000";
+
 function ChefForm({ submissions, setSubmissions }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -16,9 +18,12 @@ function ChefForm({ submissions, setSubmissions }) {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
 
     const newErrors = {};
     let hasError = false;
@@ -38,29 +43,68 @@ function ChefForm({ submissions, setSubmissions }) {
       hasError = true;
     }
 
-    if (formData.ingredients.length < 10) {
-      newErrors.ingredients = "Please add at least ten ingredients.";
-      hasError = true;
-    }
-
-    if (formData.equipment.length < 5) {
-      newErrors.equipment = "Please add at least five equipment items.";
-      hasError = true;
-    }
-
     setErrors(newErrors);
 
     if (!hasError) {
-      setSubmissions([...submissions, formData]);
-      setSubmitted(true);
-      setFormData({
-        name: "",
-        price: "",
-        date: "",
-        ingredients: [],
-        equipment: [],
-        summary: "",
-      });
+      // Copy the current form values before any async work starts.
+      const requestPayload = {
+        ...formData,
+        ingredients: [...formData.ingredients],
+        equipment: [...formData.equipment],
+      };
+
+      try {
+        setIsSubmitting(true);
+
+        const response = await fetch(`${BACKEND_URL}/requests`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+          let errorMessage = "Backend rejected the request.";
+
+          try {
+            const errorData = await response.json();
+            if (errorData.detail) {
+              errorMessage = errorData.detail;
+            }
+          } catch {
+            // Fall back to the generic message if the response is not JSON.
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        const responseData = await response.json();
+
+        // Keep the local list for now so the Requests page still shows the submission.
+        setSubmissions([
+          ...submissions,
+          {
+            ...requestPayload,
+            request_id: responseData.request_id,
+            accepted: false,
+            status: "pending",
+          },
+        ]);
+        setSubmitted(true);
+        setFormData({
+          name: "",
+          price: "",
+          date: "",
+          ingredients: [],
+          equipment: [],
+          summary: "",
+        });
+      } catch (error) {
+        setSubmitError(error.message);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -171,9 +215,12 @@ function ChefForm({ submissions, setSubmissions }) {
             type="submit"
             style={{ backgroundColor: "#FF5733", color: "#FFFFFF" }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+            disabled={isSubmitting}
           >
-            Submit Request
+            {isSubmitting ? "Submitting..." : "Submit Request"}
           </button>
+
+          {submitError && <p className="text-red-500 text-sm">{submitError}</p>}
         </form>
 
         <div className="hidden lg:flex overflow-hidden rounded-r-lg shadow-lg">
