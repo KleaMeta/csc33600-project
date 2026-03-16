@@ -112,7 +112,7 @@ Represents a cooking job request between a customer and a chef.
 
 # Equipment and Ingredients
 
-These tables define cooking requirements for requests.
+These tables define the ingredients and euipmeent the customer has available.
 
 ## Equipment
 
@@ -134,7 +134,7 @@ These tables define cooking requirements for requests.
 
 # Request Requirements
 
-Many-to-many relationship tables connecting requests with required equipment and ingredients.
+Many-to-many relationship tables connecting requests with equipment and ingredients.
 
 ## Request Equipment
 
@@ -192,7 +192,7 @@ Chefs review customers after service.
 
 - Customers create cooking requests.
 - Chefs can accept or reject requests.
-- Requests may require specific equipment and ingredients.
+- Requests include ingredients and equipment that the customer has available.
 - Customers pay chefs for completed services.
 - Both chefs and customers can leave reviews after a job is completed.
-- Location data enables proximity-based matching between chefs and customers.
+- Future: Location data enables proximity-based matching between chefs and customers.
