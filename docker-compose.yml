@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ILoveSQL123
+      POSTGRES_DB: cheffy_database
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+      - pgdata:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+      
+volumes:
+  pgdata:
+
