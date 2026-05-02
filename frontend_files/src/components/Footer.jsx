@@ -8,7 +8,7 @@ import {
 export default function AppFooter() {
   return (
     <Footer container>
-      <FooterCopyright href="#" by="GlobalRatatioulle" year={2026} />
+      <FooterCopyright href="#" by="Cheffy" year={2026} />
       <FooterLinkGroup>
         <FooterLink href="#">About</FooterLink>
         <FooterLink href="#">Privacy Policy</FooterLink>

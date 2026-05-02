@@ -7,6 +7,7 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Requests from "./pages/Requests.jsx";
+import Chef_Login from "./pages/Chef_Login.jsx";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -82,6 +83,8 @@ export default function App() {
             />
 
             <Route path="/Login" element={<Login />} />
+
+            <Route path="/chef-login" element={<Chef_Login />} />
 
             <Route
               path="/Requests"
