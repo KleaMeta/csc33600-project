@@ -1,4 +1,4 @@
-"""Minimal backend app for the hire-a-chef form."""
+"""Backend app for the hire-a-chef form."""
 
 import os
 
@@ -6,9 +6,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db.session import get_supabase_client
+from app.db.session import database
 from app.schemas.request import HireChefRequest
-
 
 load_dotenv()
 
@@ -16,158 +15,97 @@ app = FastAPI(title="GlobalRatatouille Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup():
+    await database.connect()
 
-def get_next_integer_id(supabase, table_name, id_column):
-    """Return the next integer ID for a table that is not auto-incrementing."""
-
-    latest_row = (
-        supabase.table(table_name)
-        .select(id_column)
-        .order(id_column, desc=True)
-        .limit(1)
-        .execute()
-    )
-
-    if not latest_row.data:
-        return 1
-
-    return latest_row.data[0][id_column] + 1
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
 
 @app.get("/health")
-def health_check():
-    """Simple route for confirming the backend is running."""
-
+async def health_check():
     return {"status": "ok"}
 
+@app.get("/api/chefs")
+async def get_chefs():
+    query = "SELECT chef_id, name, latitude, longitude FROM chef"
+    rows = await database.fetch_all(query)
+    return [dict(row) for row in rows]
 
 @app.post("/requests")
-def create_request(request_data: HireChefRequest):
-    """Receive a hire-a-chef submission from the UI.
-
-    For now this route:
-    - accepts the submitted form data
-    - attaches an assumed customer_id
-    - prepares the table payloads
-    """
-
+async def create_request(request_data: HireChefRequest):
     assumed_customer_id = os.getenv("ASSUMED_CUSTOMER_ID")
 
-    # This row matches the request table described in the README schema.
-    # `chef_id` starts as null because the request has not been assigned yet.
-    # `accepted` starts as false because no chef has approved it yet.
-    request_row = {
-        "request_id": None,
-        "customer_id": assumed_customer_id,
-        "chef_id": None,
-        "accepted": False,
-        "price": float(request_data.price),
-        "date": request_data.date,
-        "summary": request_data.summary,
-    }
-
-    # Keep these lists separate so they are easy to map into join tables.
-    ingredient_rows = request_data.ingredients
-    equipment_rows = request_data.equipment
-
     try:
-        # Create the client once for all DB operations in this request.
-        supabase = get_supabase_client()
+        # Get next request_id
+        max_id = await database.fetch_val("SELECT COALESCE(MAX(request_id), 0) FROM request")
+        request_id = max_id + 1
 
-        request_row["request_id"] = get_next_integer_id(
-            supabase=supabase,
-            table_name="request",
-            id_column="request_id",
+        # Insert main request
+        await database.execute(
+            """
+            INSERT INTO request (request_id, customer_id, chef_id, accepted, price, date, summary)
+            VALUES (:request_id, :customer_id, NULL, FALSE, :price, :date, :summary)
+            """,
+            {
+                "request_id": request_id,
+                "customer_id": assumed_customer_id,
+                "price": float(request_data.price),
+                "date": request_data.date,
+                "summary": request_data.summary,
+            }
         )
 
-        # Insert the main request and read back its generated request_id.
-        request_result = supabase.table("request").insert(request_row).execute()
-
-        if not request_result.data:
-            raise RuntimeError("Request insert did not return any data.")
-
-        request_id = request_result.data[0]["request_id"]
-
-        # Insert ingredient names directly into the request_ingredient join table.
-        for ingredient_name in ingredient_rows:
-            request_ingredient_row = {
-                "request_id": request_id,
-                "ingredient_name": ingredient_name,
-            }
-            (
-                supabase.table("request_ingredient")
-                .insert(request_ingredient_row)
-                .execute()
+        # Insert ingredients
+        for ingredient_name in request_data.ingredients:
+            await database.execute(
+                "INSERT INTO request_ingredient (request_id, ingredient_name) VALUES (:request_id, :ingredient_name)",
+                {"request_id": request_id, "ingredient_name": ingredient_name}
             )
 
-        # Insert equipment names directly into the request_equipment join table.
-        for equipment_name in equipment_rows:
-            request_equipment_row = {
-                "request_id": request_id,
-                "equipment_name": equipment_name,
-            }
-            (
-                supabase.table("request_equipment")
-                .insert(request_equipment_row)
-                .execute()
+        # Insert equipment
+        for equipment_name in request_data.equipment:
+            await database.execute(
+                "INSERT INTO request_equipment (request_id, equipment_name) VALUES (:request_id, :equipment_name)",
+                {"request_id": request_id, "equipment_name": equipment_name}
             )
 
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error while preparing the request: {exc}",
-        ) from exc
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {exc}") from exc
 
     return {
-        "message": "Request received by backend.",
+        "message": "Request received.",
         "customer_id": assumed_customer_id,
         "request_id": request_id,
-        "request_row": request_row,
-        "ingredients_count": len(ingredient_rows),
-        "equipment_count": len(equipment_rows),
     }
 
-
 @app.patch("/requests/{request_id}/approve")
-def approve_request(request_id: int):
-    """Assign the demo chef to a request and mark it as accepted."""
-
+async def approve_request(request_id: int):
     assumed_chef_id = os.getenv("ASSUMED_CHEF_ID", "chef_demo")
 
     try:
-        supabase = get_supabase_client()
-
-        updated_request = (
-            supabase.table("request")
-            .update(
-                {
-                    "chef_id": assumed_chef_id,
-                    "accepted": True,
-                }
-            )
-            .eq("request_id", request_id)
-            .execute()
+        result = await database.execute(
+            """
+            UPDATE request SET chef_id = :chef_id, accepted = TRUE
+            WHERE request_id = :request_id
+            """,
+            {"chef_id": assumed_chef_id, "request_id": request_id}
         )
 
-        if not updated_request.data:
+        if result == 0:
             raise HTTPException(status_code=404, detail="Request not found.")
 
     except HTTPException:
         raise
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error while approving the request: {exc}",
-        ) from exc
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {exc}") from exc
 
     return {
         "message": "Request approved.",
