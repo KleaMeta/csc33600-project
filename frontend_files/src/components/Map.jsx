@@ -9,6 +9,7 @@ const createChefIcon = (name, zoom) => {
 const w = Math.max(6, (zoom - 8) * 4);
 const h = w * 1.64; // maintain pin aspect ratio
 
+
   return L.divIcon({
     className: '',
     html: `
@@ -44,7 +45,17 @@ function ChefMarkers({ chefs }) {
       position={[chef.latitude, chef.longitude]}
       icon={createChefIcon(chef.name, zoom)}
     >
-      <Popup>{chef.name}</Popup>
+      <Popup>
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'}}>
+            <img 
+                src={chef.profile_pic_file_path}
+                style={{width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover'}}
+            />
+            
+            <strong>{chef.name}</strong>
+                <span>{chef.address}</span>
+            </div>
+        </Popup>
     </Marker>
   ));
 }
