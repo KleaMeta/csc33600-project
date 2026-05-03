@@ -5,13 +5,16 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 
 from app.db.session import database
 from app.schemas.request import HireChefRequest
 
 load_dotenv()
 
-app = FastAPI(title="GlobalRatatouille Backend")
+app = FastAPI(title="Cheffy Backend")
+app.mount("/images", StaticFiles(directory="/Users/brianhernandez/sp26-csc33600-repo-3141/database/images"), name="images")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,7 +38,7 @@ async def health_check():
 
 @app.get("/api/chefs")
 async def get_chefs():
-    query = "SELECT chef_id, name, latitude, longitude FROM chef"
+    query = "SELECT * FROM chef"
     rows = await database.fetch_all(query)
     return [dict(row) for row in rows]
 

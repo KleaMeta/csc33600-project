@@ -1,32 +1,32 @@
 -- 1. Insert Customers
 INSERT INTO customer (customer_id, name, email, address, password, latitude, longitude, profile_pic_file_path) VALUES
-('cust_01', 'Alice Waters', 'alice@example.com', '123 Berkeley Way', 'hash_pw_1', 37.8715, -122.2730, '/images/alice.jpg'),
-('cust_02', 'David Chang', 'david@momofuku.com', '456 Noodle St', 'hash_pw_2', 40.7128, -74.0060, '/images/david.jpg'),
-('cust_03', 'Julia Child', 'julia@kitchen.org', '789 Butter Blvd', 'hash_pw_3', 42.3601, -71.0589, '/images/julia.jpg');
+('cust_01', 'Alice Waters', 'alice@example.com', '123 Berkeley Way', 'hash_pw_1', 37.8715, -122.2730, 'https://i.pravatar.cc/150?u=cust_01'),
+('cust_02', 'David Chang', 'david@momofuku.com', '456 Noodle St', 'hash_pw_2', 40.7128, -74.0060, 'https://i.pravatar.cc/150?u=cust_02'),
+('cust_03', 'Julia Child', 'julia@kitchen.org', '789 Butter Blvd', 'hash_pw_3', 42.3601, -71.0589, 'https://i.pravatar.cc/150?u=cust_03');
 
 -- 2. Insert Chefs (mostly NYC, spread across boroughs)
 INSERT INTO chef (chef_id, name, email, address, password, latitude, longitude, profile_pic_file_path) VALUES
 -- Manhattan
-('chef_01', 'Gordon Ramsay',     'gordon@hellskitchen.com',  '742 W 50th St, Manhattan',       'lamb_sauce',    40.7614, -73.9776, '/chefs/gordon.png'),
-('chef_02', 'Ina Garten',        'ina@barefoot.com',         '310 W 72nd St, Manhattan',        'easy_is_fine',  40.7794, -73.9822, '/chefs/ina.png'),
-('chef_03', 'Marcus Samuelsson', 'marcus@redrooster.com',    '310 Lenox Ave, Harlem',           'harlem_spice',  40.8089, -73.9468, '/chefs/marcus.png'),
-('chef_04', 'Gabrielle Hamilton', 'gab@prunerestaurant.com', '54 E 1st St, East Village',       'prune_pw',      40.7252, -73.9876, '/chefs/gab.png'),
+('chef_01', 'Gordon Ramsay',      'gordon@hellskitchen.com',  '742 W 50th St, Manhattan',        'lamb_sauce',    40.7614, -73.9776, 'http://localhost:8000/images/chefs/chef_01.png'),
+('chef_02', 'Ina Garten',         'ina@barefoot.com',         '310 W 72nd St, Manhattan',        'easy_is_fine',  40.7794, -73.9822, 'https://i.pravatar.cc/150?u=chef_02'),
+('chef_03', 'Marcus Samuelsson',  'marcus@redrooster.com',    '310 Lenox Ave, Harlem',           'harlem_spice',  40.8089, -73.9468, 'https://i.pravatar.cc/150?u=chef_03'),
+('chef_04', 'Gabrielle Hamilton', 'gab@prunerestaurant.com',  '54 E 1st St, East Village',       'prune_pw',      40.7252, -73.9876, 'https://i.pravatar.cc/150?u=chef_04'),
 -- Brooklyn
-('chef_05', 'Missy Robbins',     'missy@lilia.com',          '567 Union Ave, Williamsburg',     'pasta_queen',   40.7131, -73.9510, '/chefs/missy.png'),
-('chef_06', 'Peter Luger',       'peter@luger.com',          '178 Broadway, Williamsburg',      'steak_pw',      40.7099, -73.9626, '/chefs/peter.png'),
-('chef_07', 'Esther Choi',       'esther@mokbar.com',        '45 Atlantic Ave, Boerum Hill',    'korean_spice',  40.6889, -73.9900, '/chefs/esther.png'),
-('chef_08', 'Flynn McGarry',     'flynn@gem.com',            '220 Flatbush Ave, Park Slope',    'gem_pw',        40.6710, -73.9772, '/chefs/flynn.png'),
+('chef_05', 'Missy Robbins',      'missy@lilia.com',          '567 Union Ave, Williamsburg',     'pasta_queen',   40.7131, -73.9510, 'https://i.pravatar.cc/150?u=chef_05'),
+('chef_06', 'Peter Luger',        'peter@luger.com',          '178 Broadway, Williamsburg',      'steak_pw',      40.7099, -73.9626, 'https://i.pravatar.cc/150?u=chef_06'),
+('chef_07', 'Esther Choi',        'esther@mokbar.com',        '45 Atlantic Ave, Boerum Hill',    'korean_spice',  40.6889, -73.9900, 'https://i.pravatar.cc/150?u=chef_07'),
+('chef_08', 'Flynn McGarry',      'flynn@gem.com',            '220 Flatbush Ave, Park Slope',    'gem_pw',        40.6710, -73.9772, 'https://i.pravatar.cc/150?u=chef_08'),
 -- Queens
-('chef_09', 'Eric Huang',        'eric@pecking.com',         '33-20 Prince St, Flushing',       'duck_pw',       40.7574, -73.8304, '/chefs/eric.png'),
-('chef_10', 'King Phojanakong',  'king@kuma.com',            '78-20 Roosevelt Ave, Jackson Hts','kuma_pw',       40.7498, -73.8911, '/chefs/king.png'),
-('chef_11', 'Natalia Pereira',   'natalia@woodside.com',     '55 Skillman Ave, Woodside',       'churrasco_pw',  40.7443, -73.9068, '/chefs/natalia.png'),
+('chef_09', 'Eric Huang',         'eric@pecking.com',         '33-20 Prince St, Flushing',       'duck_pw',       40.7574, -73.8304, 'https://i.pravatar.cc/150?u=chef_09'),
+('chef_10', 'King Phojanakong',   'king@kuma.com',            '78-20 Roosevelt Ave, Jackson Hts','kuma_pw',       40.7498, -73.8911, 'https://i.pravatar.cc/150?u=chef_10'),
+('chef_11', 'Natalia Pereira',    'natalia@woodside.com',     '55 Skillman Ave, Woodside',       'churrasco_pw',  40.7443, -73.9068, 'https://i.pravatar.cc/150?u=chef_11'),
 -- Bronx
-('chef_12', 'Roberto Paciullo',  'roberto@roberto.com',      '603 Crescent Ave, Belmont',       'bronx_italian', 40.8548, -73.8880, '/chefs/roberto.png'),
-('chef_13', 'Pierre Thiam',      'pierre@teranga.com',       '890 Grand Concourse, Bronx',      'senegal_pw',    40.8448, -73.9271, '/chefs/pierre.png'),
+('chef_12', 'Roberto Paciullo',   'roberto@roberto.com',      '603 Crescent Ave, Belmont',       'bronx_italian', 40.8548, -73.8880, 'https://i.pravatar.cc/150?u=chef_12'),
+('chef_13', 'Pierre Thiam',       'pierre@teranga.com',       '890 Grand Concourse, Bronx',      'senegal_pw',    40.8448, -73.9271, 'https://i.pravatar.cc/150?u=chef_13'),
 -- Staten Island
-('chef_14', 'Silvia Testa',      'silvia@si.com',            '1 Bay St, St. George',            'si_pasta',      40.6438, -74.0738, '/chefs/silvia.png'),
--- Out of town (minority)
-('chef_15', 'José Andrés',       'jose@thinkfood.com',       '480 7th St NW, Washington DC',    'think_food',    38.8951, -77.0364, '/chefs/jose.png');
+('chef_14', 'Silvia Testa',       'silvia@si.com',            '1 Bay St, St. George',            'si_pasta',      40.6438, -74.0738, 'https://i.pravatar.cc/150?u=chef_14'),
+-- Out of town
+('chef_15', 'José Andrés',        'jose@thinkfood.com',       '480 7th St NW, Washington DC',    'think_food',    38.8951, -77.0364, 'https://i.pravatar.cc/150?u=chef_15');
 
 -- 3. Insert Customer Payment Info
 INSERT INTO customer_payment_info (payment_id, customer_id, name_on_card, cc_number, exp_month, exp_year, cvc) VALUES
