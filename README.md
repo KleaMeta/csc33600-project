@@ -10,86 +10,68 @@ This database supports a platform where **customers request cooking services** a
 
 # Core User Tables
 
-## Chefs
-
-Stores information about chefs using the platform.
-
-| Column | Type | Description |
-|------|------|-------------|
-| chef_id | varchar (PK) | Unique identifier for each chef |
-| name | varchar | Chef's full name |
-| email | varchar | Chef's email address |
-| address | varchar | Chef's address |
-| password | varchar | Chef account password |
-
----
-
-## Customers
+## Customer
 
 Stores information about customers requesting services.
 
 | Column | Type | Description |
-|------|------|-------------|
-| customer_id | varchar (PK) | Unique identifier for each customer |
-| name | varchar | Customer's name |
-| email | varchar | Customer's email |
-| address | varchar | Customer's address |
-| password | varchar | Customer account password |
+|---|---|---|
+| customer_id | VARCHAR(255) PK | Unique identifier for each customer |
+| name | VARCHAR(255) | Customer's full name |
+| email | VARCHAR(255) | Customer's email address |
+| address | VARCHAR(255) | Customer's address |
+| password | VARCHAR(255) | Customer account password |
+| latitude | NUMERIC | Customer's latitude coordinate |
+| longitude | NUMERIC | Customer's longitude coordinate |
+| profile_pic_file_path | VARCHAR(255) | Path or URL to profile picture |
 
 ---
 
-# Location Tables
+## Chef
 
-These tables store geographic coordinates for users.
-
-## Chef Location
+Stores information about chefs using the platform.
 
 | Column | Type | Description |
-|------|------|-------------|
-| chef_id | varchar (PK, FK → chefs) | Chef associated with this location |
-| latitude | numeric | Chef latitude |
-| longitude | numeric | Chef longitude |
-
----
-
-## Customer Location
-
-| Column | Type | Description |
-|------|------|-------------|
-| customer_id | varchar (PK, FK → customers) | Customer associated with this location |
-| latitude | numeric | Customer latitude |
-| longitude | numeric | Customer longitude |
+|---|---|---|
+| chef_id | VARCHAR(255) PK | Unique identifier for each chef |
+| name | VARCHAR(255) | Chef's full name |
+| email | VARCHAR(255) | Chef's email address |
+| address | VARCHAR(255) | Chef's address |
+| password | VARCHAR(255) | Chef account password |
+| latitude | NUMERIC | Chef's latitude coordinate |
+| longitude | NUMERIC | Chef's longitude coordinate |
+| profile_pic_file_path | VARCHAR(255) | Path or URL to profile picture |
 
 ---
 
 # Payment Information
 
-## Chef Bank Information
-
-Stores bank details for chef payouts.
-
-| Column | Type | Description |
-|------|------|-------------|
-| bank_payment_id | integer (PK) | Unique payment record ID |
-| chef_id | varchar (FK → chefs) | Chef associated with this bank account |
-| account_number | varchar | Bank account number |
-| routing_number | varchar | Bank routing number |
-
----
-
-## Customer Payment Information
+## Customer Payment Info
 
 Stores customer credit card details.
 
 | Column | Type | Description |
-|------|------|-------------|
-| payment_id | integer (PK) | Unique payment record ID |
-| customer_id | varchar (FK → customers) | Customer making payment |
-| name_on_card | varchar | Cardholder name |
-| cc_number | varchar | Credit card number |
-| exp_month | integer | Expiration month |
-| exp_year | integer | Expiration year |
-| cvc | smallint | Card security code |
+|---|---|---|
+| payment_id | INTEGER PK | Unique payment record ID |
+| customer_id | VARCHAR(255) FK → customer | Customer making payment |
+| name_on_card | VARCHAR(255) | Cardholder name |
+| cc_number | VARCHAR(255) | Credit card number |
+| exp_month | SMALLINT | Expiration month |
+| exp_year | SMALLINT | Expiration year |
+| cvc | SMALLINT | Card security code |
+
+---
+
+## Chef Bank Info
+
+Stores bank details for chef payouts.
+
+| Column | Type | Description |
+|---|---|---|
+| bank_payment_id | INTEGER PK | Unique payment record ID |
+| chef_id | VARCHAR(255) FK → chef | Chef associated with this bank account |
+| account_number | VARCHAR(255) | Bank account number |
+| routing_number | INTEGER | Bank routing number |
 
 ---
 
@@ -97,102 +79,67 @@ Stores customer credit card details.
 
 ## Request
 
-Represents a cooking job request between a customer and a chef.
+Represents a cooking job request from a customer to a chef.
 
 | Column | Type | Description |
-|------|------|-------------|
-| request_id | integer (PK) | Unique request ID |
-| customer_id | varchar (FK → customers) | Customer making request |
-| chef_id | varchar (FK → chefs) | Chef assigned to request |
-| accepted | boolean | Whether the chef accepted the request |
-| date | timestamp | Scheduled date for service |
-| price | numeric | Agreed price for service |
+|---|---|---|
+| request_id | INTEGER PK | Unique request ID |
+| customer_id | VARCHAR(255) FK → customer | Customer making the request |
+| chef_id | VARCHAR(255) FK → chef | Chef assigned to the request (nullable until assigned) |
+| accepted | BOOLEAN | Whether the chef has accepted the request |
+| date | TIMESTAMP | Scheduled date and time for service |
+| price | NUMERIC | Agreed price for the service |
+| summary | TEXT | Optional description of the request |
 
 ---
-
-# Equipment and Ingredients
-
-These tables define the ingredients and euipmeent the customer has available.
-
-## Equipment
-
-| Column | Type | Description |
-|------|------|-------------|
-| equipment_id | integer (PK) | Equipment ID |
-| equipment_name | varchar | Name of kitchen equipment |
-
----
-
-## Ingredients
-
-| Column | Type | Description |
-|------|------|-------------|
-| ingredient_id | integer (PK) | Ingredient ID |
-| ingredient_name | varchar | Ingredient name |
-
----
-
-# Request Requirements
-
-Many-to-many relationship tables connecting requests with equipment and ingredients.
 
 ## Request Equipment
 
+Equipment the customer has available for the request.
+
 | Column | Type | Description |
-|------|------|-------------|
-| request_id | integer (FK → request) | Associated request |
-| equipment_id | integer (FK → equipment) | Equipment |
+|---|---|---|
+| request_id | INTEGER FK → request | Associated request |
+| equipment_name | VARCHAR(255) | Name of the kitchen equipment |
+
+Primary key is `(request_id, equipment_name)`.
 
 ---
 
-## Request Ingredients
+## Request Ingredient
+
+Ingredients the customer has available for the request.
 
 | Column | Type | Description |
-|------|------|-------------|
-| request_id | integer (FK → request) | Associated request |
-| ingredient_id | integer (FK → ingredients) | Ingredient |
+|---|---|---|
+| request_id | INTEGER FK → request | Associated request |
+| ingredient_name | VARCHAR(255) | Name of the ingredient |
+
+Primary key is `(request_id, ingredient_name)`.
 
 ---
 
 # Review System
 
-The platform allows **mutual reviews between chefs and customers**.
+Customers and chefs can leave reviews after a service is completed.
 
----
-
-## Reviews for Chefs
-
-Customers review chefs after service.
+## Review
 
 | Column | Type | Description |
-|------|------|-------------|
-| review_chef_id | integer (PK) | Unique review ID |
-| customer_id | varchar (FK → customers) | Customer writing review |
-| chef_id | varchar (FK → chefs) | Chef being reviewed |
-| num_stars | smallint | Star rating |
-| review_content | varchar | Written review |
-
----
-
-## Reviews for Customers
-
-Chefs review customers after service.
-
-| Column | Type | Description |
-|------|------|-------------|
-| review_cust_id | integer (PK) | Unique review ID |
-| customer_id | varchar (FK → customers) | Customer being reviewed |
-| chef_id | varchar (FK → chefs) | Chef writing review |
-| num_stars | smallint | Star rating |
-| review_content | varchar | Written review |
+|---|---|---|
+| review_id | INTEGER PK | Unique review ID |
+| num_stars | SMALLINT | Star rating |
+| review_content | VARCHAR(255) | Written review content |
+| chef_id | VARCHAR(255) FK → chef | Chef involved in the reviewed service |
+| customer_id | VARCHAR(255) FK → customer | Customer involved in the reviewed service |
+| timestamp | TIMESTAMP | When the review was submitted |
 
 ---
 
 # Relationship Summary
 
-- Customers create cooking requests.
-- Chefs can accept or reject requests.
-- Requests include ingredients and equipment that the customer has available.
-- Customers pay chefs for completed services.
-- Both chefs and customers can leave reviews after a job is completed.
-- Future: Location data enables proximity-based matching between chefs and customers.
+- Customers create cooking requests specifying a price, date, summary, and the ingredients and equipment they have on hand.
+- Chefs can be assigned to and accept requests.
+- Both chefs and customers store geographic coordinates enabling proximity-based matching.
+- Customers pay chefs for completed services via stored payment info.
+- Reviews are left after a job is completed, linked to both the chef and customer involved.
