@@ -6,7 +6,6 @@ Minimal backend scaffold for the chef booking project.
 
 - `app/main.py`: application entry point
 - `app/api/routes/`: route modules
-- `app/db/`: database setup
 - `app/models/`: database models
 - `app/schemas/`: request and response schemas
 

@@ -39,6 +39,10 @@ function Navbar({ submissions }) {
         <NavbarLink as={Link} to="/">
           Home
         </NavbarLink>
+        <NavbarLink as={Link} to="/MapPage">
+          Map
+        </NavbarLink>
+
         <NavbarLink href="#">About</NavbarLink>
         <NavbarLink as={Link} to="/Requests">
           Open Requests ({submissions.length})
