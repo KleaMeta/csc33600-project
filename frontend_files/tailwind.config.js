@@ -9,6 +9,9 @@ module.exports = {
         dark: "#111827",
         lightGray: "#F3F4F6",
       },
+      fontFamily: {
+        logo: ['Pacifico', 'cursive'],
+      },
     },
   },
   plugins: [],
