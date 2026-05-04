@@ -9,7 +9,6 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
         <p className="text-gray-600">No requests submitted yet.</p>
       ) : (
         submissions.map((req, index) => (
-          //Added startDate and endDate display & startTime and endTime display
           <div
             key={index}
             style={{ backgroundColor: "#F59E0B" }}
@@ -19,10 +18,7 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
               <strong>Price:</strong> {req.price}
             </p>
             <p>
-              <strong>Date/Dates:</strong> {req.startDate} - {req.endDate}
-            </p>
-            <p>
-              <strong>Time:</strong> {req.startTime} - {req.endTime}
+              <strong>Date:</strong> {req.date}
             </p>
             <p>
               <strong>Ingredients:</strong> {req.ingredients.join(", ")}

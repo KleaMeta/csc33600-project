@@ -1,5 +1,3 @@
-import "../index.css";
-
 import {
   Navbar as FlowbiteNavbar,
   NavbarBrand,
@@ -16,7 +14,7 @@ function Navbar({ submissions }) {
       <NavbarBrand href="/">
         <span
           style={{ backgroundColor: "#FFFFFF", color: "#FF5733" }}
-          className="self-center whitespace-nowrap text-xl logo text-blue-600"
+          className="self-center whitespace-nowrap text-xl font-semibold text-blue-600"
         >
           Cheffy
         </span>

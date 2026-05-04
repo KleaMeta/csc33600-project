@@ -1,4 +1,3 @@
-const TEST_MODE = true;
 import { useState } from "react";
 import { TextInput, Label, Textarea } from "flowbite-react";
 import { HiCalendar } from "react-icons/hi";
@@ -10,10 +9,7 @@ const BACKEND_URL = "http://127.0.0.1:8000";
 function ChefForm({ submissions, setSubmissions }) {
   const [formData, setFormData] = useState({
     price: "",
-    startDate: "", //Added field, date has been replaced with startDate and endDate
-    endDate: "", //Added field, date has been replaced with startDate and endDate
-    startTime: "", //Added field, included for time range
-    endTime: "", //Added field, included for time range
+    date: "",
     ingredients: [],
     equipment: [],
     summary: "",
@@ -36,85 +32,31 @@ function ChefForm({ submissions, setSubmissions }) {
       hasError = true;
     }
 
-    if (!formData.startDate) {
-      newErrors.startDate = "Start date is required.";
+    if (!formData.date) {
+      newErrors.date = "Date is required.";
       hasError = true;
-    }
-    if (!formData.endDate) {
-      newErrors.endDate = "End date is required.";
-      hasError = true;
-    }
-    if (!formData.startTime) {
-      newErrors.startTime = "Start time is required.";
-      hasError = true;
-    }
-    if (!formData.endTime) {
-      newErrors.endTime = "End time is required.";
-      hasError = true;
-    }
-
-    if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
-      newErrors.endDate = "End date cannot be before start date.";
-      hasError = true;  //New line
-    }
-    if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
-      newErrors.endTime = "End time must be after start time.";
-      hasError = true; //@@@@New line
     }
 
     setErrors(newErrors);
 
     if (!hasError) {
-      // @@@@ Copy the current form values before any async work starts.
+      // Copy the current form values before any async work starts.
       const requestPayload = {
         ...formData,
         ingredients: [...formData.ingredients],
         equipment: [...formData.equipment],
-        // @@@@ now needed startDate, endDate, startTime, endTime
       };
 
       try {
         setIsSubmitting(true);
 
-        if (TEST_MODE) {
-          console.log("TEST MODE: Would send payload to backend:", requestPayload);
-
-          // simulate successful backend response
-          const responseData = { request_id: Math.floor(Math.random() * 10000) };
-
-          setSubmissions([
-            ...submissions,
-            {
-              ...requestPayload,
-              request_id: responseData.request_id,
-              accepted: false,
-              status: "pending",
-            },
-          ]);
-
-          setSubmitted(true);
-
-          setFormData({
-            price: "",
-            startDate: "",
-            endDate: "",
-            startTime: "",
-            endTime: "",
-            ingredients: [],
-            equipment: [],
-            summary: "",
-          });
-
-        } else {
-          // real backend request
-          const response = await fetch(`${BACKEND_URL}/requests`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestPayload),
-          });
-
-          // ... rest of your original response handling ...
-        }
+        const response = await fetch(`${BACKEND_URL}/requests`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestPayload),
+        });
 
         if (!response.ok) {
           let errorMessage = "Backend rejected the request.";
@@ -125,7 +67,7 @@ function ChefForm({ submissions, setSubmissions }) {
               errorMessage = errorData.detail;
             }
           } catch {
-            // @@@@ Fall back to the generic message if the response is not JSON.
+            // Fall back to the generic message if the response is not JSON.
           }
 
           throw new Error(errorMessage);
@@ -133,7 +75,7 @@ function ChefForm({ submissions, setSubmissions }) {
 
         const responseData = await response.json();
 
-        // @@@@ Keep the local list for now so the Requests page still shows the submission.
+        // Keep the local list for now so the Requests page still shows the submission.
         setSubmissions([
           ...submissions,
           {
@@ -146,10 +88,7 @@ function ChefForm({ submissions, setSubmissions }) {
         setSubmitted(true);
         setFormData({
           price: "",
-          startDate: "", //@@@@New field
-          endDate: "", //@@@@New field
-          startTime: "", //@@@@New field
-          endTime: "", //@@@@New field
+          date: "",
           ingredients: [],
           equipment: [],
           summary: "",
@@ -174,7 +113,7 @@ function ChefForm({ submissions, setSubmissions }) {
       </div>
     );
   }
-  //Added fields for date and time range: startDate, endDate, startTime, endTime
+
   return (
     <div className="flex justify-center p-8">
       <div className="grid lg:grid-cols-[minmax(0,36rem)_32rem] p-8 max-w-screen-xl mx-auto shadow-lg overflow-hidden">
@@ -202,61 +141,20 @@ function ChefForm({ submissions, setSubmissions }) {
           </div>
 
           <div>
-            <Label htmlFor="startDate">Start Date</Label>
+            <Label htmlFor="date">Date</Label>
             <TextInput
-              id="startDate"
+              id="date"
               type="date"
               icon={HiCalendar}
-              value={formData.startDate}
+              value={formData.date}
               onChange={(e) =>
-                setFormData({ ...formData, startDate: e.target.value })
+                setFormData({ ...formData, date: e.target.value })
               }
               required
             />
-            {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="endDate">End Date</Label>
-            <TextInput
-              id="endDate"
-              type="date"
-              icon={HiCalendar}
-              value={formData.endDate}
-              onChange={(e) =>
-                setFormData({ ...formData, endDate: e.target.value })
-              }
-              required
-            />
-            {errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="startTime">Start Time</Label>
-            <TextInput
-              id="startTime"
-              type="time"
-              value={formData.startTime}
-              onChange={(e) =>
-                setFormData({ ...formData, startTime: e.target.value })
-              }
-              required
-            />
-            {errors.startTime && <p className="text-red-500 text-sm">{errors.startTime}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="endTime">End Time</Label>
-            <TextInput
-              id="endTime"
-              type="time"
-              value={formData.endTime}
-              onChange={(e) =>
-                setFormData({ ...formData, endTime: e.target.value })
-              }
-              required
-            />
-            {errors.endTime && <p className="text-red-500 text-sm">{errors.endTime}</p>}
+            {errors.date && (
+              <p className="text-red-500 text-sm">{errors.date}</p>
+            )}
           </div>
 
           <TagInput

@@ -3,8 +3,4 @@
 @plugin "flowbite/plugin";
 @variant dark (false);
 
-.logo {
-  font-family: 'Pacifico', cursive;
-}
-
 @source "../node_modules/flowbite-react/dist/**/*.js";
