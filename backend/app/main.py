@@ -1,6 +1,7 @@
 """Backend app for the hire-a-chef form."""
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -14,7 +15,10 @@ from app.schemas.request import HireChefRequest
 load_dotenv()
 
 app = FastAPI(title="Cheffy Backend")
-app.mount("/images", StaticFiles(directory="/Users/brianhernandez/sp26-csc33600-repo-3141/database/images"), name="images")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+IMAGES_DIR = REPO_ROOT / "database" / "images"
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
 
 app.add_middleware(
     CORSMiddleware,
