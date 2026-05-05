@@ -143,3 +143,25 @@ Customers and chefs can leave reviews after a service is completed.
 - Both chefs and customers store geographic coordinates enabling proximity-based matching.
 - Customers pay chefs for completed services via stored payment info.
 - Reviews are left after a job is completed, linked to both the chef and customer involved.
+
+# Key Commands 
+- ./reset.sh
+  - run from root directory 
+  - run whenever you want to refresh the data
+  - resets the docker db 
+- docker compose up
+  - run from root directory 
+  - run whenever you start the app
+  - starts the docker
+- uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+  - run from backend/
+  - run whenever you start the app
+  - starts the backend 
+- npm install 
+  - run from frontend_files/ 
+  - run the first time you run the app on your machine 
+  - installs dependencies for frontend 
+- npm run dev
+  - run from frontend_files/
+  - run whenever you run the app 
+  - starts the frontend
