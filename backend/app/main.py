@@ -1,6 +1,7 @@
 """Backend app for the hire-a-chef form."""
 
 import os
+from datetime import datetime, time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -65,7 +66,7 @@ async def create_request(request_data: HireChefRequest):
                 "request_id": request_id,
                 "customer_id": assumed_customer_id,
                 "price": float(request_data.price),
-                "date": request_data.date,
+                "date": datetime.combine(request_data.date, time.min),
                 "summary": request_data.summary,
             }
         )
