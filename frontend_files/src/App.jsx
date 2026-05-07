@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer.jsx";
 import ChefForm from "./components/ChefForm.jsx";
 import Home from "./pages/Home.jsx";
@@ -8,14 +7,26 @@ import Login from "./pages/Login.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Requests from "./pages/Requests.jsx";
 import Chef_Login from "./pages/Chef_Login.jsx";
+import Customer_Login from "./pages/Customer_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
-
+import { useAuth } from "./context/useAuth.js";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
+
+function ChefOnlyRoute({ children }) {
+  const { isChef } = useAuth();
+
+  if (!isChef) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
 
 export default function App() {
   const [submissions, setSubmissions] = useState([]);
   const [requestError, setRequestError] = useState("");
+  const { authUser } = useAuth();
 
   const handleApprove = async (index) => {
     const requestToApprove = submissions[index];
@@ -31,6 +42,10 @@ export default function App() {
         `${BACKEND_URL}/requests/${requestToApprove.request_id}/approve`,
         {
           method: "PATCH",
+          headers: {
+            "X-User-Role": authUser?.role ?? "",
+            "X-User-Id": authUser?.user_id ?? "",
+          },
         },
       );
 
@@ -84,24 +99,30 @@ export default function App() {
               }
             />
 
-            <Route path="/Login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
 
             <Route path="/chef-login" element={<Chef_Login />} />
+            <Route path="/customer-login" element={<Customer_Login />} />
 
-            <Route path="/MapPage" element={<MapPage />} />
-
+            <Route path="/map" element={<MapPage />} />
 
             <Route
-              path="/Requests"
+              path="/requests"
               element={
-                <Requests
-                  submissions={submissions}
-                  handleApprove={handleApprove}
-                  handleDeny={handleDeny}
-                  requestError={requestError}
-                />
+                <ChefOnlyRoute>
+                  <Requests
+                    submissions={submissions}
+                    handleApprove={handleApprove}
+                    handleDeny={handleDeny}
+                    requestError={requestError}
+                  />
+                </ChefOnlyRoute>
               }
             />
+
+            <Route path="/MapPage" element={<Navigate to="/map" replace />} />
+            <Route path="/Login" element={<Navigate to="/login" replace />} />
+            <Route path="/Requests" element={<Navigate to="/requests" replace />} />
           </Routes>
         </main>
 

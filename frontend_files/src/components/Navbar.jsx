@@ -7,8 +7,11 @@ import {
   Button,
 } from "flowbite-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/useAuth.js";
 
 function Navbar({ submissions }) {
+  const { authUser, isChef, isCustomer, isLoggedIn, logout } = useAuth();
+
   return (
     <FlowbiteNavbar fluid rounded className="border border-gray-300">
       <NavbarBrand href="/">
@@ -21,15 +24,32 @@ function Navbar({ submissions }) {
       </NavbarBrand>
 
       <div className="flex md:order-2 items-center gap-2">
-        <Button
-          style={{ backgroundColor: "#FF5733", color: "#000000" }}
-          className="bg-gray-200 text-gray-800 hover:bg-gray-300"
-        >
-          <Link to="/Login">Login</Link>
-        </Button>
-        <Button style={{ backgroundColor: "#F0D813", color: "#000000" }}>
-          <Link to="/hire-chef">Hire a Chef</Link>
-        </Button>
+        {isLoggedIn ? (
+          <>
+            <span className="text-sm text-gray-700">
+              Signed in as {authUser?.role}
+            </span>
+            <Button
+              style={{ backgroundColor: "#FF5733", color: "#000000" }}
+              className="bg-gray-200 text-gray-800 hover:bg-gray-300"
+              onClick={logout}
+            >
+              Logout
+            </Button>
+          </>
+        ) : (
+          <Button
+            style={{ backgroundColor: "#FF5733", color: "#000000" }}
+            className="bg-gray-200 text-gray-800 hover:bg-gray-300"
+          >
+            <Link to="/login">Login</Link>
+          </Button>
+        )}
+        {isCustomer && (
+          <Button style={{ backgroundColor: "#F0D813", color: "#000000" }}>
+            <Link to="/hire-chef">Hire a Chef</Link>
+          </Button>
+        )}
         <NavbarToggle />
       </div>
 
@@ -37,14 +57,16 @@ function Navbar({ submissions }) {
         <NavbarLink as={Link} to="/">
           Home
         </NavbarLink>
-        <NavbarLink as={Link} to="/MapPage">
+        <NavbarLink as={Link} to="/map">
           Map
         </NavbarLink>
 
         <NavbarLink href="#">About</NavbarLink>
-        <NavbarLink as={Link} to="/Requests">
-          Open Requests ({submissions.length})
-        </NavbarLink>
+        {isChef && (
+          <NavbarLink as={Link} to="/requests">
+            Open Requests ({submissions.length})
+          </NavbarLink>
+        )}
       </NavbarCollapse>
     </FlowbiteNavbar>
   );

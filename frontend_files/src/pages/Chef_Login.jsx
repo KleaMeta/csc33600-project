@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { TextInput, Label, Button } from "flowbite-react";
-// import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth.js";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
 function Chef_Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -56,19 +57,18 @@ function Chef_Login() {
                         if (errorData.detail) {
                             errorMessage = errorData.detail;
                         }
-                    } catch { }
+                    } catch {
+                        // Keep the fallback message when backend returns non-JSON errors.
+                    }
 
                     throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
 
-                console.log("Logged in:", data);
+                login(data);
 
                 navigate("/requests");
-                // 👉 later you can:
-                // navigate("/dashboard")
-                // or store token
 
             } catch (error) {
                 setSubmitError(error.message);

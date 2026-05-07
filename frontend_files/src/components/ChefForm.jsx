@@ -3,10 +3,12 @@ import { TextInput, Label, Textarea } from "flowbite-react";
 import { HiCalendar } from "react-icons/hi";
 import TagInput from "./TagInput";
 import chefImage from "../assets/pexels-sebastian-coman-photography-1598188-3717880.jpg";
+import { useAuth } from "../context/useAuth.js";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
 function ChefForm({ submissions, setSubmissions }) {
+  const { authUser, isCustomer } = useAuth();
   const [formData, setFormData] = useState({
     price: "",
     date: "",
@@ -40,6 +42,11 @@ function ChefForm({ submissions, setSubmissions }) {
     setErrors(newErrors);
 
     if (!hasError) {
+      if (!isCustomer) {
+        setSubmitError("Please log in as a customer before submitting a request.");
+        return;
+      }
+
       // Copy the current form values before any async work starts.
       const requestPayload = {
         ...formData,
@@ -54,6 +61,8 @@ function ChefForm({ submissions, setSubmissions }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-User-Role": authUser?.role ?? "",
+            "X-User-Id": authUser?.user_id ?? "",
           },
           body: JSON.stringify(requestPayload),
         });
