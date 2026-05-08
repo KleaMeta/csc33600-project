@@ -1,7 +1,6 @@
 import { Button } from "flowbite-react";
 import { Link } from "react-router-dom";
-// import Chef_Login from "./pages/ChefLogin.jsx";
-// import Customer_Login from "./pages/CustLogin.jsx";
+
 function Login() {
   return (
     <div className="p-8">

@@ -84,11 +84,11 @@ function ChefForm({ submissions, setSubmissions }) {
 
         const responseData = await response.json();
 
-        // Keep the local list for now so the Requests page still shows the submission.
         setSubmissions([
           ...submissions,
           {
             ...requestPayload,
+            price: `$${parseFloat(requestPayload.price).toFixed(2)}`,
             request_id: responseData.request_id,
             accepted: false,
             status: "pending",
