@@ -57,7 +57,7 @@ function Chef_Login() {
                             errorMessage = errorData.detail;
                         }
                     } catch {
-                        // Keep the fallback message when backend returns non-JSON errors.
+
                     }
 
                     throw new Error(errorMessage);
