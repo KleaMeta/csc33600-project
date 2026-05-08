@@ -1,6 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 @import "tailwindcss";
-/* @import "flowbite"; */
 @plugin "flowbite/plugin";
 @variant dark (false);
 
 @source "../node_modules/flowbite-react/dist/**/*.js";
+
+.logo {
+  font-family: 'Pacifico', cursive;
+}
+
+/* Keep clickable controls visually consistent across the app. */
+button:not(:disabled),
+a,
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
