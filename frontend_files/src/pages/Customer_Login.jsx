@@ -59,7 +59,7 @@ function Customer_Login() {
             errorMessage = errorData.detail;
           }
         } catch {
-          // Keep the fallback message when backend returns non-JSON errors.
+
         }
 
         throw new Error(errorMessage);
@@ -115,9 +115,14 @@ function Customer_Login() {
           )}
         </div>
 
-        <Button type="submit" disabled={isSubmitting}>
+        <button
+          type="submit"
+          style={{ backgroundColor: "#FF5733", color: "#FFFFFF" }}
+          className="hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Logging in..." : "Login"}
-        </Button>
+        </button>
 
         {submitError && <p className="text-red-500 text-sm">{submitError}</p>}
       </form>

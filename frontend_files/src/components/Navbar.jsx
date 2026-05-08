@@ -9,7 +9,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth.js";
 
-function Navbar({ submissions }) {
+function Navbar({ submissions, bookings }) {
   const { authUser, isChef, isCustomer, isLoggedIn, logout } = useAuth();
 
   return (
@@ -17,7 +17,7 @@ function Navbar({ submissions }) {
       <NavbarBrand href="/">
         <span
           style={{ backgroundColor: "#FFFFFF", color: "#FF5733" }}
-          className="self-center whitespace-nowrap text-xl font-semibold text-blue-600"
+          className="self-center whitespace-nowrap text-xl logo"
         >
           Cheffy
         </span>
@@ -26,8 +26,13 @@ function Navbar({ submissions }) {
       <div className="flex md:order-2 items-center gap-2">
         {isLoggedIn ? (
           <>
-            <span className="text-sm text-gray-700">
-              Signed in as {authUser?.role}
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full border ${authUser?.role === "chef"
+                ? "bg-amber-100 text-amber-900 border-amber-300"
+                : "bg-blue-100 text-blue-900 border-blue-300"
+                }`}
+            >
+              {authUser?.role === "chef" ? "Chef" : "Customer"}
             </span>
             <Button
               style={{ backgroundColor: "#FF5733", color: "#000000" }}
@@ -63,8 +68,14 @@ function Navbar({ submissions }) {
 
         <NavbarLink href="#">About</NavbarLink>
         {isChef && (
-          <NavbarLink as={Link} to="/requests">
+          <NavbarLink as={Link} to="/Requests">
             Open Requests ({submissions.length})
+          </NavbarLink>
+        )}
+
+        {isLoggedIn && (
+          <NavbarLink as={Link} to="/Bookings">
+            Bookings ({bookings.length})
           </NavbarLink>
         )}
       </NavbarCollapse>

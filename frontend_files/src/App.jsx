@@ -10,6 +10,7 @@ import Chef_Login from "./pages/Chef_Login.jsx";
 import Customer_Login from "./pages/Customer_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import { useAuth } from "./context/useAuth.js";
+import Bookings from "./pages/Bookings.jsx";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -25,15 +26,14 @@ function ChefOnlyRoute({ children }) {
 
 export default function App() {
   const [submissions, setSubmissions] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [requestError, setRequestError] = useState("");
   const { authUser } = useAuth();
 
   const handleApprove = async (index) => {
     const requestToApprove = submissions[index];
 
-    if (!requestToApprove?.request_id) {
-      return;
-    }
+    if (!requestToApprove?.request_id) return;
 
     setRequestError("");
 
@@ -46,30 +46,22 @@ export default function App() {
             "X-User-Role": authUser?.role ?? "",
             "X-User-Id": authUser?.user_id ?? "",
           },
-        },
+        }
       );
 
       if (!response.ok) {
         let errorMessage = "Could not approve the request.";
-
         try {
           const errorData = await response.json();
-          if (errorData.detail) {
-            errorMessage = errorData.detail;
-          }
-        } catch {
-          // Fall back to the generic message if the backend returns no JSON.
-        }
-
+          if (errorData.detail) errorMessage = errorData.detail;
+        } catch { }
         throw new Error(errorMessage);
       }
 
-      const updated = submissions.map((req, i) =>
-        i === index
-          ? { ...req, status: "approved", accepted: true }
-          : req,
-      );
-      setSubmissions(updated);
+      const approvedReq = { ...submissions[index], status: "approved" };
+      setBookings(prev => [...prev, approvedReq]);
+      setSubmissions(prev => prev.filter((_, i) => i !== index));
+
     } catch (error) {
       setRequestError(error.message);
     }
@@ -80,10 +72,43 @@ export default function App() {
     setSubmissions(updated);
   };
 
+  // Backend please implemeent patch here to get bookings canceled
+  // and some bookings tables
+  const handleCancel = async (requestId) => {
+    if (!requestId) return;
+    setRequestError("");
+
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/requests/${requestId}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            "X-User-Role": authUser?.role ?? "",
+            "X-User-Id": authUser?.user_id ?? "",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = "Could not cancel the booking.";
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) errorMessage = errorData.detail;
+        } catch { }
+        throw new Error(errorMessage);
+      }
+
+      setBookings(prev => prev.filter(req => req.request_id !== requestId)); // ✅ inside try
+    } catch (error) {
+      setRequestError(error.message);
+    }
+  };
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        <Navbar submissions={submissions} />
+        <Navbar submissions={submissions} bookings={bookings} />
 
         <main className="flex-grow">
           <Routes>
@@ -120,9 +145,20 @@ export default function App() {
               }
             />
 
+            <Route
+              path="/bookings"
+              element={
+                <Bookings
+                  bookings={bookings}
+                  handleCancel={handleCancel}
+                  bookingError={requestError}
+                />
+              }
+            />
             <Route path="/MapPage" element={<Navigate to="/map" replace />} />
             <Route path="/Login" element={<Navigate to="/login" replace />} />
             <Route path="/Requests" element={<Navigate to="/requests" replace />} />
+
           </Routes>
         </main>
 
