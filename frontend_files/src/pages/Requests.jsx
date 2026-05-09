@@ -28,11 +28,15 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
       </div>
 
       <div style={{ padding: "1rem 1.25rem 0.75rem" }}>
-        <div style={{ marginBottom: 10 }}>
-          <div style={labelStyle}>Request ID</div>
-          <div style={idStyle}>#{req.request_id ?? `REQ-${String(index + 1).padStart(5, "0")}`}</div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ marginBottom: 10 }}>
+              <div style={labelStyle}>Request ID</div>
+              <div style={idStyle}>#{req.request_id ?? `REQ-${String(index + 1).padStart(5, "0")}`}</div>
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <div style={labelStyle}>Requested chef</div>
+              <div style={valueStyle}>{req.chef_id ?? "Any chef"}</div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div>
             <div style={labelStyle}>Date</div>
             <div style={valueStyle}>{req.date}</div>

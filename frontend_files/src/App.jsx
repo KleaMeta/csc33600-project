@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/useAuth.js";
 import Footer from "./components/Footer.jsx";
@@ -30,6 +30,40 @@ export default function App() {
   const [bookings, setBookings] = useState([]);
   const [requestError, setRequestError] = useState("");
   const { authUser } = useAuth();
+
+  useEffect(() => {
+    if (authUser?.role !== "chef" || !authUser?.user_id) {
+      return;
+    }
+
+    fetch(`${BACKEND_URL}/requests/open`, {
+      headers: {
+        "X-User-Role": authUser.role,
+        "X-User-Id": authUser.user_id,
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          let message = "Could not load open requests.";
+          try {
+            const errorData = await response.json();
+            if (errorData.detail) {
+              message = errorData.detail;
+            }
+          } catch {
+            // Keep generic error message.
+          }
+          throw new Error(message);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setSubmissions(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        setRequestError(error.message);
+      });
+  }, [authUser]);
 
   const handleApprove = async (index) => {
     const requestToApprove = submissions[index];
