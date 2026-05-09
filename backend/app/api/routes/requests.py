@@ -18,7 +18,17 @@ async def create_request(request_data: HireChefRequest, request: Request):
 
     _, customer_id = require_role(request, {"customer"})
 
+    selected_chef_id = request_data.chef_id.strip() if request_data.chef_id else None
+
     try:
+        if selected_chef_id:
+            chef_exists = await database.fetch_val(
+                "SELECT COUNT(*) FROM chef WHERE chef_id = :chef_id",
+                {"chef_id": selected_chef_id},
+            )
+            if not chef_exists:
+                raise HTTPException(status_code=400, detail="Selected chef does not exist.")
+
         max_id = await database.fetch_val("SELECT COALESCE(MAX(request_id), 0) FROM request")
         request_id = max_id + 1
 
@@ -30,7 +40,7 @@ async def create_request(request_data: HireChefRequest, request: Request):
             {
                 "request_id": request_id,
                 "customer_id": customer_id,
-                "chef_id": request_data.chef_id,
+                "chef_id": selected_chef_id,
                 "price": float(request_data.price),
                 "date": datetime.combine(request_data.date, time.min),
                 "summary": request_data.summary,
@@ -49,6 +59,8 @@ async def create_request(request_data: HireChefRequest, request: Request):
                 {"request_id": request_id, "equipment_name": equipment_name},
             )
 
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {exc}") from exc
 
@@ -57,6 +69,55 @@ async def create_request(request_data: HireChefRequest, request: Request):
         "customer_id": customer_id,
         "request_id": request_id,
     }
+
+
+@router.get("/requests/open")
+async def get_open_requests(request: Request):
+    """Return open requests visible to the logged-in chef."""
+
+    _, chef_id = require_role(request, {"chef"})
+
+    rows = await database.fetch_all(
+        """
+        SELECT request_id, customer_id, chef_id, accepted, date, price, summary
+        FROM request
+        WHERE accepted = FALSE
+          AND (chef_id IS NULL OR chef_id = :chef_id)
+        ORDER BY date ASC, request_id ASC
+        """,
+        {"chef_id": chef_id},
+    )
+
+    results = []
+    for row in rows:
+        ingredients_rows = await database.fetch_all(
+            """
+            SELECT ingredient_name
+            FROM request_ingredient
+            WHERE request_id = :request_id
+            ORDER BY ingredient_name ASC
+            """,
+            {"request_id": row["request_id"]},
+        )
+        equipment_rows = await database.fetch_all(
+            """
+            SELECT equipment_name
+            FROM request_equipment
+            WHERE request_id = :request_id
+            ORDER BY equipment_name ASC
+            """,
+            {"request_id": row["request_id"]},
+        )
+
+        results.append(
+            {
+                **dict(row),
+                "ingredients": [r["ingredient_name"] for r in ingredients_rows],
+                "equipment": [r["equipment_name"] for r in equipment_rows],
+            }
+        )
+
+    return results
 
 
 @router.patch("/requests/{request_id}/approve")
@@ -70,12 +131,23 @@ async def approve_request(request_id: int, request: Request):
             """
             UPDATE request SET chef_id = :chef_id, accepted = TRUE
             WHERE request_id = :request_id
+              AND accepted = FALSE
+              AND (chef_id IS NULL OR chef_id = :chef_id)
             """,
             {"chef_id": chef_id, "request_id": request_id},
         )
 
         if result == 0:
-            raise HTTPException(status_code=404, detail="Request not found.")
+            existing = await database.fetch_one(
+                "SELECT request_id FROM request WHERE request_id = :request_id",
+                {"request_id": request_id},
+            )
+            if not existing:
+                raise HTTPException(status_code=404, detail="Request not found.")
+            raise HTTPException(
+                status_code=403,
+                detail="This request is assigned to another chef or is already closed.",
+            )
 
     except HTTPException:
         raise

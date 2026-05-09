@@ -38,6 +38,8 @@ const s = {
 
 function ChefForm({ submissions, setSubmissions }) {
   const { authUser, isCustomer } = useAuth();
+  const [chefs, setChefs] = useState([]);
+  const [chefLoadError, setChefLoadError] = useState("");
   const [formData, setFormData] = useState({
     price: "",
     date: "",
@@ -58,6 +60,33 @@ function ChefForm({ submissions, setSubmissions }) {
       link.href = FONT_URL;
       document.head.appendChild(link);
     }
+  }, []);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/chefs`)
+      .then(async (res) => {
+        if (!res.ok) {
+          let detail = "Could not load chefs right now.";
+          try {
+            const errorData = await res.json();
+            if (errorData?.detail) {
+              detail = errorData.detail;
+            }
+          } catch {
+            // Keep fallback message if response is non-JSON.
+          }
+          throw new Error(detail);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setChefs(Array.isArray(data) ? data : []);
+        setChefLoadError("");
+      })
+      .catch((error) => {
+        setChefs([]);
+        setChefLoadError(error.message);
+      });
   }, []);
 
   const handleSubmit = async (e) => {
@@ -118,6 +147,7 @@ function ChefForm({ submissions, setSubmissions }) {
         ...submissions,
         {
           ...requestPayload,
+          chef_id: requestPayload.chef_id || null,
           price: `$${parseFloat(requestPayload.price).toFixed(2)}`,
           request_id: responseData.request_id,
           accepted: false,
@@ -125,7 +155,14 @@ function ChefForm({ submissions, setSubmissions }) {
         },
       ]);
       setSubmitted(true);
-      setFormData({ price: "", date: "", ingredients: [], equipment: [], summary: "" });
+      setFormData({
+        price: "",
+        date: "",
+        ingredients: [],
+        equipment: [],
+        summary: "",
+        chef_id: "",
+      });
     } catch (error) {
       setSubmitError(error.message);
     } finally {
@@ -225,6 +262,25 @@ function ChefForm({ submissions, setSubmissions }) {
             </div>
 
             {/* Summary */}
+            <div style={s.fieldWrap}>
+              <label style={s.label}>Specific chef (optional)</label>
+              <select
+                value={formData.chef_id}
+                onChange={(e) =>
+                  setFormData({ ...formData, chef_id: e.target.value })
+                }
+                style={s.input}
+              >
+                <option value="">Any available chef</option>
+                {chefs.map((chef) => (
+                  <option key={chef.chef_id} value={chef.chef_id}>
+                    {chef.name}
+                  </option>
+                ))}
+              </select>
+              {chefLoadError && <p style={s.errorText}>{chefLoadError}</p>}
+            </div>
+
             <div style={s.fieldWrap}>
               <label style={s.label}>Request summary</label>
               <textarea
