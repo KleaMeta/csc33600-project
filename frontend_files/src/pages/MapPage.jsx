@@ -17,7 +17,6 @@ export default function MapPage() {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ── Hero band ── */}
       <div style={{ background: "#FFF8ED", borderBottom: "0.5px solid #FAC775", padding: "2.5rem 2rem" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>
@@ -32,7 +31,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* ── Map ── */}
+      {/* Map */}
       <div style={{ maxWidth: 1100, margin: "2rem auto", padding: "0 2rem" }}>
         <div style={{ borderRadius: 16, overflow: "hidden", border: "0.5px solid #EF9F27", height: "65vh", minHeight: 400 }}>
           <Map />
