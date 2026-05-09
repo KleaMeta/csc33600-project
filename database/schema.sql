@@ -79,6 +79,18 @@ CREATE TABLE request_ingredient (
     FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
+-- Sponsor
+-- Chefs pay to be ranked higher in listings while their sponsorship window is active.
+CREATE TABLE sponsor (
+    sponsor_id  INTEGER NOT NULL,
+    chef_id     VARCHAR(255) NOT NULL,
+    amount_paid NUMERIC NOT NULL,
+    start_date  TIMESTAMP NOT NULL,
+    end_date    TIMESTAMP NOT NULL,
+    PRIMARY KEY (sponsor_id),
+    FOREIGN KEY (chef_id) REFERENCES chef(chef_id)
+);
+
 -- Review
 CREATE TABLE review (
     review_id      INTEGER NOT NULL,

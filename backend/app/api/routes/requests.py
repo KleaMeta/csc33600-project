@@ -25,11 +25,12 @@ async def create_request(request_data: HireChefRequest, request: Request):
         await database.execute(
             """
             INSERT INTO request (request_id, customer_id, chef_id, accepted, price, date, summary)
-            VALUES (:request_id, :customer_id, NULL, FALSE, :price, :date, :summary)
+            VALUES (:request_id, :customer_id, :chef_id, FALSE, :price, :date, :summary)
             """,
             {
                 "request_id": request_id,
                 "customer_id": customer_id,
+                "chef_id": request_data.chef_id,
                 "price": float(request_data.price),
                 "date": datetime.combine(request_data.date, time.min),
                 "summary": request_data.summary,

@@ -44,6 +44,7 @@ function ChefForm({ submissions, setSubmissions }) {
     ingredients: [],
     equipment: [],
     summary: "",
+    chef_id: "",
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
