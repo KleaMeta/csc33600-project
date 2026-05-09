@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents} from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@luomus/leaflet-smooth-wheel-zoom';
 import L from 'leaflet';
@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 
 
 const createChefIcon = (name, zoom) => {
-const w = Math.max(6, (zoom - 8) * 4);
-const h = w * 1.64; // maintain pin aspect ratio
+  const w = Math.max(6, (zoom - 8) * 4);
+  const h = w * 1.64; // maintain pin aspect ratio
 
 
   return L.divIcon({
@@ -46,50 +46,50 @@ function ChefMarkers({ chefs }) {
       icon={createChefIcon(chef.name, zoom)}
     >
       <Popup>
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'}}>
-            <img 
-                src={chef.profile_pic_file_path}
-                style={{width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover'}}
-            />
-            
-            <strong>{chef.name}</strong>
-                <span>{chef.address}</span>
-            </div>
-        </Popup>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+          <img
+            src={chef.profile_pic_file_path}
+            style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }}
+          />
+
+          <strong>{chef.name}</strong>
+          <span>{chef.address}</span>
+        </div>
+      </Popup>
     </Marker>
   ));
 }
 
 export default function Map() {
-    const [chefs, setChefs] = useState([]);
+  const [chefs, setChefs] = useState([]);
 
-    useEffect(() => {
+  useEffect(() => {
     fetch('http://localhost:8000/api/chefs')
       .then(res => res.json())
       .then(data => setChefs(data));
   }, []);
-  
 
-    return (
-    <MapContainer 
-        center={[40.8196, -73.9496]}//ccny
-        zoom={10}
-        zoomDelta={0.25}//make zooming slower
-        zoomAnimation={true}
-        scrollWheelZoom={false}        // ← disable default
-        smoothWheelZoom={true}         // ← enable smooth
-        smoothSensitivity={5}          // ← adjust 1–5, lower = slower
-        markerZoomAnimation={true}
-        style={{ height: '50vh', width: '50%' }}
+
+  return (
+    <MapContainer
+      center={[40.8196, -73.9496]}//ccny
+      zoom={10}
+      zoomDelta={0.25}//make zooming slower
+      zoomAnimation={true}
+      scrollWheelZoom={false}        // ← disable default
+      smoothWheelZoom={true}         // ← enable smooth
+      smoothSensitivity={5}          // ← adjust 1–5, lower = slower
+      markerZoomAnimation={true}
+      style={{ height: '100vh', width: '100%' }}
     >
-    
-    <TileLayer
+
+      <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    />
+      />
 
-    <ChefMarkers chefs={chefs} />
-      
+      <ChefMarkers chefs={chefs} />
+
     </MapContainer>
   );
 }

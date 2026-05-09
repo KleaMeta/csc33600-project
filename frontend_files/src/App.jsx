@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "./context/useAuth.js";
 import Footer from "./components/Footer.jsx";
 import ChefForm from "./components/ChefForm.jsx";
 import Home from "./pages/Home.jsx";
@@ -9,8 +10,8 @@ import Requests from "./pages/Requests.jsx";
 import Chef_Login from "./pages/Chef_Login.jsx";
 import Customer_Login from "./pages/Customer_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
-import { useAuth } from "./context/useAuth.js";
 import Bookings from "./pages/Bookings.jsx";
+import About from './pages/About.jsx';
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -124,9 +125,12 @@ export default function App() {
               }
             />
 
+            <Route path="/About" element={<About />} />
+
             <Route path="/login" element={<Login />} />
 
             <Route path="/chef-login" element={<Chef_Login />} />
+
             <Route path="/customer-login" element={<Customer_Login />} />
 
             <Route path="/map" element={<MapPage />} />

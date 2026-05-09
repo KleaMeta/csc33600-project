@@ -65,8 +65,10 @@ function Navbar({ submissions, bookings }) {
         <NavbarLink as={Link} to="/map">
           Map
         </NavbarLink>
+        <NavbarLink as={Link} to="/About">
+          About
+        </NavbarLink>
 
-        <NavbarLink href="#">About</NavbarLink>
         {isChef && (
           <NavbarLink as={Link} to="/Requests">
             Open Requests ({submissions.length})

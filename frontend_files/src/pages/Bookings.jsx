@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-
 const FONT_URL =
     "https://fonts.googleapis.com/css2?family=Special+Elite&display=swap";
 
@@ -90,28 +89,38 @@ function Bookings({ bookings, handleCancel, bookingError }) {
     }, []);
 
     return (
-        <div style={{ padding: "2rem", maxWidth: 680, margin: "0 auto" }}>
-            <h1 style={{ fontSize: 28, fontWeight: 500, marginBottom: "1.5rem" }}>
-                My bookings
-            </h1>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
+            <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
+                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>My bookings</p>
+                <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", margin: "0 0 0.5rem", fontWeight: 400 }}>Confirmed cookings</h1>
+                <p style={{ fontSize: 15, color: "#633806", margin: "0 0 2rem" }}>All your approved bookings.</p>
 
-            {bookingError && (
-                <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{bookingError}</p>
-            )}
+                {bookingError && (
+                    <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{bookingError}</p>
+                )}
 
-            {bookings.length === 0 ? (
-                <p style={{ color: "#888" }}>No bookings yet.</p>
-            ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                    {bookings.map((req, index) => (
-                        <BookingTicket
-                            key={req.request_id ?? index}
-                            req={req}
-                            handleCancel={handleCancel}
-                        />
-                    ))}
-                </div>
-            )}
+                {bookings.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "3rem 0" }}>
+                        <i className="ti ti-calendar" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
+                        <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
+                            No reservations on the books...
+                        </p>
+                        <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
+                            Approved requests will show up here as confirmed bookings.
+                        </p>
+                    </div>
+                ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                        {bookings.map((req, index) => (
+                            <BookingTicket
+                                key={req.request_id ?? index}
+                                req={req}
+                                handleCancel={handleCancel}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
