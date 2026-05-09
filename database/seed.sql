@@ -57,7 +57,12 @@ INSERT INTO request_ingredient (request_id, ingredient_name) VALUES
 (1003, 'Farm Fresh Eggs'),
 (1003, 'Unsalted Butter');
 
--- 8. Insert Reviews
+-- 8. Insert Sponsors (active sponsorships rank these chefs first)
+INSERT INTO sponsor (sponsor_id, chef_id, amount_paid, start_date, end_date) VALUES
+(701, 'chef_05', 199.00, '2026-01-01 00:00:00', '2027-01-01 00:00:00'),
+(702, 'chef_09', 149.00, '2026-03-15 00:00:00', '2026-09-15 00:00:00');
+
+-- 9. Insert Reviews
 INSERT INTO review (review_id, num_stars, review_content, chef_id, customer_id, timestamp) VALUES
 (9001, 5, 'The Beef Wellington was perfection. Gordon didn''t even yell at me!', 'chef_01', 'cust_01', '2026-05-01 21:00:00'),
 (9002, 4, 'Wonderful chicken, but a bit too much salt for my taste.',             'chef_02', 'cust_02', '2026-05-05 14:00:00');

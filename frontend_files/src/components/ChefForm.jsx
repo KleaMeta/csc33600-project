@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { TextInput, Label, Textarea } from "flowbite-react";
+import { useEffect, useState } from "react";
+import { TextInput, Label, Textarea, Select } from "flowbite-react";
 import { HiCalendar } from "react-icons/hi";
 import TagInput from "./TagInput";
 import chefImage from "../assets/pexels-sebastian-coman-photography-1598188-3717880.jpg";
@@ -15,7 +15,17 @@ function ChefForm({ submissions, setSubmissions }) {
     ingredients: [],
     equipment: [],
     summary: "",
+    chef_id: "",
   });
+  const [chefs, setChefs] = useState([]);
+
+  useEffect(() => {
+    // Backend already sorts sponsored chefs first.
+    fetch(`${BACKEND_URL}/api/chefs`)
+      .then((res) => res.json())
+      .then((data) => setChefs(Array.isArray(data) ? data : []))
+      .catch(() => setChefs([]));
+  }, []);
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -52,6 +62,7 @@ function ChefForm({ submissions, setSubmissions }) {
         ...formData,
         ingredients: [...formData.ingredients],
         equipment: [...formData.equipment],
+        chef_id: formData.chef_id || null,
       };
 
       try {
@@ -101,6 +112,7 @@ function ChefForm({ submissions, setSubmissions }) {
           ingredients: [],
           equipment: [],
           summary: "",
+          chef_id: "",
         });
       } catch (error) {
         setSubmitError(error.message);
@@ -131,6 +143,24 @@ function ChefForm({ submissions, setSubmissions }) {
           className="space-y-4 p-8 bg-white rounded-l-lg shadow-lg"
         >
           <h1 className="text-3xl font-bold mb-4">Hire a Chef</h1>
+
+          <div>
+            <Label htmlFor="chef">Chef (optional)</Label>
+            <Select
+              id="chef"
+              value={formData.chef_id}
+              onChange={(e) =>
+                setFormData({ ...formData, chef_id: e.target.value })
+              }
+            >
+              <option value="">No preference — open to any chef</option>
+              {chefs.map((chef) => (
+                <option key={chef.chef_id} value={chef.chef_id}>
+                  {chef.is_sponsored ? "★ " : ""}{chef.name}
+                </option>
+              ))}
+            </Select>
+          </div>
 
           <div>
             <Label htmlFor="price">Price</Label>

@@ -13,3 +13,4 @@ class HireChefRequest(BaseModel):
     ingredients: list[str]
     equipment: list[str]
     summary: str = Field(min_length=1)
+    chef_id: str | None = None
