@@ -1,67 +1,55 @@
-import { useState } from "react";
-import { TextInput, Label, Button } from "flowbite-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth.js";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
+const FONT_URL =
+  "https://fonts.googleapis.com/css2?family=Pacifico&family=DM+Sans:wght@400;500&display=swap";
+
 function Customer_Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = FONT_URL;
+      document.head.appendChild(link);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
-
     const newErrors = {};
     let hasError = false;
 
-    if (!formData.email) {
-      newErrors.email = "Email is required.";
-      hasError = true;
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required.";
-      hasError = true;
-    }
+    if (!formData.email) { newErrors.email = "Email is required."; hasError = true; }
+    if (!formData.password) { newErrors.password = "Password is required."; hasError = true; }
 
     setErrors(newErrors);
-
-    if (hasError) {
-      return;
-    }
+    if (hasError) return;
 
     try {
       setIsSubmitting(true);
-
       const response = await fetch(`${BACKEND_URL}/customer-login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         let errorMessage = "Login failed.";
-
         try {
           const errorData = await response.json();
-          if (errorData.detail) {
-            errorMessage = errorData.detail;
-          }
-        } catch {
-
-        }
-
+          if (errorData.detail) errorMessage = errorData.detail;
+        } catch { }
         throw new Error(errorMessage);
       }
 
@@ -76,56 +64,67 @@ function Customer_Login() {
   };
 
   return (
-    <div className="flex justify-center p-8">
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 p-8 bg-white rounded-lg shadow-lg w-full max-w-md"
-      >
-        <h1 className="text-3xl font-bold mb-4">Customer Login</h1>
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
 
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <TextInput
-            id="email"
-            type="email"
-            placeholder="customer@email.com"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            required
-          />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <p style={{ fontSize: 15, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>
+            Welcome back!
+          </p>
+          <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", margin: "0 0 0.5rem", fontWeight: 400 }}>
+            Customer Login
+          </h1>
+          <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
+            Your next meal is a login away.
+          </p>
         </div>
 
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <TextInput
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            required
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm">{errors.password}</p>
-          )}
+        <div style={{ background: "#fff", border: "0.5px solid #EF9F27", borderRadius: 16, padding: "2rem" }}>
+
+          {/* Email right here */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#854F0B", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="customer@email.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              style={{ width: "100%", padding: "9px 12px", border: "0.5px solid #EF9F27", borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", color: "#412402", outline: "none", boxSizing: "border-box" }}
+              required
+            />
+            {errors.email && <p style={{ color: "#A32D2D", fontSize: 12, marginTop: 4 }}>{errors.email}</p>}
+          </div>
+
+          {/* Password right here */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "#854F0B", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              style={{ width: "100%", padding: "9px 12px", border: "0.5px solid #EF9F27", borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", color: "#412402", outline: "none", boxSizing: "border-box" }}
+              required
+            />
+            {errors.password && <p style={{ color: "#A32D2D", fontSize: 12, marginTop: 4 }}>{errors.password}</p>}
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            style={{ width: "100%", background: isSubmitting ? "#ccc" : "#F0D813", color: "#412402", border: "none", padding: "12px 0", borderRadius: 8, fontSize: 15, fontWeight: 500, cursor: isSubmitting ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif" }}
+          >
+            {isSubmitting ? "Logging in..." : "Login as customer"}
+          </button>
+
+          {submitError && <p style={{ color: "#A32D2D", fontSize: 13, marginTop: 12, textAlign: "center" }}>{submitError}</p>}
         </div>
 
-        <button
-          type="submit"
-          style={{ backgroundColor: "#FF5733", color: "#FFFFFF" }}
-          className="hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Logging in..." : "Login"}
-        </button>
-
-        {submitError && <p className="text-red-500 text-sm">{submitError}</p>}
-      </form>
+      </div>
     </div>
   );
 }

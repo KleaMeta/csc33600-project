@@ -1,72 +1,148 @@
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import smilingChefs from "../assets/smilingchefs.png";
 import smilingChefs2 from "../assets/smilingchefs2.jpg";
 import Laptop from "../assets/womanlaptop.jpg";
-import { Button, Carousel } from "flowbite-react";
-import { Link } from "react-router-dom";
+
+const FONT_URL =
+  "https://fonts.googleapis.com/css2?family=Pacifico&family=DM+Sans:wght@400;500&display=swap";
+
 function Home() {
+  useEffect(() => {
+    if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = FONT_URL;
+      document.head.appendChild(link);
+    }
+  }, []);
+
   return (
-    <>
-      <section className="bg-white py-16">
-        <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-          <div className="mr-auto place-self-center lg:col-span-7">
-            <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-dark-400">
-              Book a professional chef in minutes
+    <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
+
+      {/* Hero Part */}
+      <section style={{ background: "#FFF8ED", borderBottom: "0.5px solid #FAC775", padding: "4rem 2rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.5rem" }}>
+              Book. Cook. Enjoy.
+            </p>
+            <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: "clamp(32px, 5vw, 52px)", color: "#412402", lineHeight: 1.2, margin: "0 0 1.25rem", fontWeight: 400 }}>
+              Book a professional<br />chef in minutes
             </h1>
-            <p className="max-w-2xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl dark:text-dark-400">
-              Tell us what you need, from ingredients to equipment, and we'll
+            <p style={{ fontSize: 16, color: "#633806", lineHeight: 1.8, maxWidth: 460, marginBottom: "2rem" }}>
+              Tell us what you need — from ingredients to equipment — and we'll
               connect you with chefs who can bring your vision to life.
             </p>
-            <Button
-              style={{ backgroundColor: "#F0D813", color: "#000000" }}
-              size="lg"
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Link
+                to="/hire-chef"
+                style={{ background: "#FF5733", color: "#fff", padding: "12px 28px", borderRadius: 8, fontWeight: 500, fontSize: 15, textDecoration: "none" }}
+              >
+                Hire a Chef
+              </Link>
+              <Link
+                to="/about"
+                style={{ background: "transparent", color: "#BA7517", padding: "12px 28px", borderRadius: 8, fontWeight: 500, fontSize: 15, textDecoration: "none", border: "0.5px solid #EF9F27" }}
+              >
+                Learn more
+              </Link>
+            </div>
+          </div>
+
+          <div style={{ borderRadius: 16, overflow: "hidden", aspectRatio: "4/3", background: "#FAEEDA", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={smilingChefs} alt="Smiling chefs" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        </div>
+      </section>
+
+      {/* Stats strip */}
+      <section style={{ background: "#FF5733", padding: "2rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", textAlign: "center" }}>
+          {[
+            { num: "500+", label: "Chefs available" },
+            { num: "2,000+", label: "Meals served" },
+            { num: "4.9★", label: "Average rating" },
+          ].map((s) => (
+            <div key={s.label}>
+              <p style={{ fontSize: 28, fontWeight: 500, color: "#fff", margin: "0 0 4px" }}>{s.num}</p>
+              <p style={{ fontSize: 13, color: "#FFE0D8", margin: 0 }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Feature split */}
+      <section style={{ background: "#FFF8ED", borderTop: "0.5px solid #FAC775", borderBottom: "0.5px solid #FAC775", padding: "4rem 2rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "center" }}>
+          <div style={{ borderRadius: 16, overflow: "hidden", aspectRatio: "4/3", background: "#FAEEDA", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={Laptop} alt="Customer browsing" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 15, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>
+              For customers
+            </p>
+            <h2 style={{ fontSize: 26, fontWeight: 500, margin: "0 0 1rem", color: "#412402" }}>
+              Your kitchen, your menu, your chef
+            </h2>
+            <p style={{ fontSize: 15, color: "#633806", lineHeight: 1.8, marginBottom: "1.5rem" }}>
+              Whether it's an intimate dinner for two or a feast for twenty, Cheffy
+              connects you with chefs who match your exact vision — no compromises.
+            </p>
+            <Link
+              to="/hire-chef"
+              style={{ background: "#F0D813", color: "#412402", padding: "10px 24px", borderRadius: 8, fontWeight: 500, fontSize: 14, textDecoration: "none", display: "inline-block" }}
             >
-              <Link to="/hire-chef">Hire a Chef</Link>
-            </Button>
-          </div>
-
-          <div className="hidden lg:mt-0 lg:col-span-5 lg:flex h-full xl:h-96">
-            {/* <Carousel slide={true} slideInterval={3000}>
-              <img
-                src={smilingChefs}
-                alt="Smiling Chefs"
-                className="rounded-lg"
-              />
-              <img
-                src={smilingChefs2}
-                alt="Smiling Chefs2"
-                className="rounded-lg"
-              />
-            </Carousel> */}
-            <img
-              src={smilingChefs}
-              alt="Smiling Chefs"
-              className="rounded-lg"
-            />
+              Request a Chef
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="bg-gray-100 py-16">
-        <div className="max-w-screen-xl mx-auto px-4 lg:flex lg:items-center lg:gap-8">
-          <img
-            src={Laptop}
-            alt="How it Works"
-            className="w-full lg:w-1/3 max-w-sm rounded-lg object-cover"
-          />
-
-          <div className="mt-6 lg:mt-0 lg:w-7/12">
-            <h2 className="text-3xl font-bold mb-6">How It Works</h2>
-            <p className="text-lg mb-2">1. Tell us your requirements.</p>
-            <p className="text-lg mb-2">
-              2. Get matched with professional chefs.
+      {/* Chef Call to Action */}
+      <section style={{ background: "#fff", padding: "4rem 2rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 15, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>
+              For chefs
             </p>
-            <p className="text-lg">
-              3. Enjoy your personalized cooking experience.
+            <h2 style={{ fontSize: 26, fontWeight: 500, margin: "0 0 1rem", color: "#412402" }}>
+              Turn your passion into a career
+            </h2>
+            <p style={{ fontSize: 15, color: "#555", lineHeight: 1.8, marginBottom: "1.5rem" }}>
+              Set your own schedule, choose the clients you work with, and get paid
+              to do what you love. Join hundreds of chefs already on the platform.
             </p>
+            <Link
+              to="/chef-login"
+              style={{ background: "#FF5733", color: "#fff", padding: "10px 24px", borderRadius: 8, fontWeight: 500, fontSize: 14, textDecoration: "none", display: "inline-block" }}
+            >
+              Join as a chef
+            </Link>
+          </div>
+          <div style={{ borderRadius: 16, overflow: "hidden", aspectRatio: "4/3", background: "#FAEEDA", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img src={smilingChefs2} alt="Chef at work" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         </div>
       </section>
-    </>
+
+      {/* Bottom Call To Action */}
+      <section style={{ background: "#FF5733", padding: "3.5rem 2rem", textAlign: "center" }}>
+        <h2 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#fff", margin: "0 0 0.75rem", fontWeight: 400 }}>
+          Ready to eat well?
+        </h2>
+        <p style={{ fontSize: 15, color: "#FFE0D8", margin: "0 0 1.5rem" }}>
+          Join thousands of happy customers already using Cheffy.
+        </p>
+        <Link
+          to="/hire-chef"
+          style={{ background: "#F0D813", color: "#412402", padding: "12px 32px", borderRadius: 8, fontWeight: 500, fontSize: 15, textDecoration: "none", display: "inline-block" }}
+        >
+          Hire a Chef today
+        </Link>
+      </section>
+
+    </div>
   );
 }
 

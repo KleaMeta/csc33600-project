@@ -96,30 +96,40 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
   }, []);
 
   return (
-    <div style={{ padding: "2rem", maxWidth: 680, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 500, marginBottom: "1.5rem" }}>
-        Open requests
-      </h1>
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
+        <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>Chef dashboard</p>
+        <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", margin: "0 0 0.5rem", fontWeight: 400 }}>Open requests</h1>
+        <p style={{ fontSize: 15, color: "#633806", margin: "0 0 2rem" }}>Review and approve incoming customer requests.</p>
 
-      {requestError && (
-        <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{requestError}</p>
-      )}
+        {requestError && (
+          <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{requestError}</p>
+        )}
 
-      {submissions.length === 0 ? (
-        <p style={{ color: "#888" }}>No requests submitted yet.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {submissions.map((req, index) => (
-            <RequestTicket
-              key={req.request_id ?? index}
-              req={req}
-              index={index}
-              handleApprove={handleApprove}
-              handleDeny={handleDeny}
-            />
-          ))}
-        </div>
-      )}
+        {submissions.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "3rem 0" }}>
+            <i className="ti ti-chef-hat" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
+            <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
+              The ticket rail is empty...
+            </p>
+            <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
+              When customers submit requests, they'll appear here.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {submissions.map((req, index) => (
+              <RequestTicket
+                key={req.request_id ?? index}
+                req={req}
+                index={index}
+                handleApprove={handleApprove}
+                handleDeny={handleDeny}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
