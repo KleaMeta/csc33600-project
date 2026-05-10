@@ -1,163 +1,234 @@
 # Project Summary
-A two-sided platform where users list kitchen spaces and cooking supplies, and cooks use those resources to provide meal-preparation services, with all bookings, inventory usage, and payments tracked through a relational database.
 
+A two-sided marketplace where **customers submit cooking requests** and **chefs accept and fulfill them**. The system tracks users, chef-specific metadata, requests with structured requirements, payments, reviews, and supports semantic search using vector embeddings (`pgvector`).
+
+---
 
 # Database Schema Overview
 
-This database supports a platform where **customers request cooking services** and **chefs review and accept those requests**. The schema stores user information, locations, payment details, cooking requests, equipment/ingredient requirements, and reviews.
+This schema is centered around a unified `user` table with role-based extension for chefs, along with request, payment, and review workflows.
+
+It also includes:
+
+* Geolocation-based matching
+* Vector embeddings for RAG/search
+* Request status lifecycle tracking
+* Automatic commission calculation via trigger
 
 ---
 
-# Core User Tables
+# Core User System
 
-## Customer
+## user
 
-Stores information about customers requesting services.
+Stores both chefs and customers (distinguished by `type_of_user`).
 
-| Column | Type | Description |
-|---|---|---|
-| customer_id | VARCHAR(255) PK | Unique identifier for each customer |
-| name | VARCHAR(255) | Customer's full name |
-| email | VARCHAR(255) | Customer's email address |
-| address | VARCHAR(255) | Customer's address |
-| password | VARCHAR(255) | Customer account password |
-| latitude | NUMERIC | Customer's latitude coordinate |
-| longitude | NUMERIC | Customer's longitude coordinate |
-| profile_pic_file_path | VARCHAR(255) | Path or URL to profile picture |
-
----
-
-## Chef
-
-Stores information about chefs using the platform.
-
-| Column | Type | Description |
-|---|---|---|
-| chef_id | VARCHAR(255) PK | Unique identifier for each chef |
-| name | VARCHAR(255) | Chef's full name |
-| email | VARCHAR(255) | Chef's email address |
-| address | VARCHAR(255) | Chef's address |
-| password | VARCHAR(255) | Chef account password |
-| latitude | NUMERIC | Chef's latitude coordinate |
-| longitude | NUMERIC | Chef's longitude coordinate |
-| profile_pic_file_path | VARCHAR(255) | Path or URL to profile picture |
+| Column                | Type                | Description                 |
+| --------------------- | ------------------- | --------------------------- |
+| user_id               | VARCHAR(255) PK     | Unique user identifier      |
+| type_of_user          | user_type           | Either `chef` or `customer` |
+| name                  | VARCHAR(255)        | Full name                   |
+| email                 | VARCHAR(255) UNIQUE | Email address               |
+| address               | VARCHAR(255)        | Physical address            |
+| password_hash         | VARCHAR(255)        | Hashed password             |
+| latitude              | NUMERIC             | User latitude               |
+| longitude             | NUMERIC             | User longitude              |
+| description           | TEXT                | Optional bio/description    |
+| profile_pic_file_path | VARCHAR(255)        | Profile image path          |
 
 ---
 
-# Payment Information
+## chef_data
 
-## Customer Payment Info
+Extension table for chef-specific attributes.
 
-Stores customer credit card details.
-
-| Column | Type | Description |
-|---|---|---|
-| payment_id | INTEGER PK | Unique payment record ID |
-| customer_id | VARCHAR(255) FK → customer | Customer making payment |
-| name_on_card | VARCHAR(255) | Cardholder name |
-| cc_number | VARCHAR(255) | Credit card number |
-| exp_month | SMALLINT | Expiration month |
-| exp_year | SMALLINT | Expiration year |
-| cvc | SMALLINT | Card security code |
+| Column         | Type                      | Description                   |
+| -------------- | ------------------------- | ----------------------------- |
+| chef_id        | VARCHAR(255) PK/FK → user | Chef user reference           |
+| sponsor_score  | NUMERIC                   | Sponsorship ranking score     |
+| food_specialty | VARCHAR(255)              | Culinary specialty            |
+| embedding      | VECTOR(768)               | Semantic embedding for search |
 
 ---
 
-## Chef Bank Info
+## chef (VIEW)
 
-Stores bank details for chef payouts.
+Denormalized view joining `user` + `chef_data`.
 
-| Column | Type | Description |
-|---|---|---|
-| bank_payment_id | INTEGER PK | Unique payment record ID |
-| chef_id | VARCHAR(255) FK → chef | Chef associated with this bank account |
-| account_number | VARCHAR(255) | Bank account number |
-| routing_number | INTEGER | Bank routing number |
+Exposes:
 
----
-
-# Cooking Request System
-
-## Request
-
-Represents a cooking job request from a customer to a chef.
-
-| Column | Type | Description |
-|---|---|---|
-| request_id | INTEGER PK | Unique request ID |
-| customer_id | VARCHAR(255) FK → customer | Customer making the request |
-| chef_id | VARCHAR(255) FK → chef | Chef assigned to the request (nullable until assigned) |
-| accepted | BOOLEAN | Whether the chef has accepted the request |
-| date | TIMESTAMP | Scheduled date and time for service |
-| price | NUMERIC | Agreed price for the service |
-| summary | TEXT | Optional description of the request |
+* identity fields (name, email, address)
+* location fields
+* chef metadata (sponsor_score, food_specialty)
 
 ---
 
-## Request Equipment
+# Payments
 
-Equipment the customer has available for the request.
+## payment_info
 
-| Column | Type | Description |
-|---|---|---|
-| request_id | INTEGER FK → request | Associated request |
-| equipment_name | VARCHAR(255) | Name of the kitchen equipment |
+Stores customer payment methods.
 
-Primary key is `(request_id, equipment_name)`.
+| Column       | Type                   | Description       |
+| ------------ | ---------------------- | ----------------- |
+| payment_id   | INT PK                 | Payment record ID |
+| user_id      | VARCHAR(255) FK → user | Owner of card     |
+| name_on_card | VARCHAR(255)           | Cardholder name   |
+| cc_number    | VARCHAR(255)           | Card number       |
+| exp_month    | SMALLINT               | Expiration month  |
+| exp_year     | SMALLINT               | Expiration year   |
+| cvc          | SMALLINT               | Security code     |
 
 ---
 
-## Request Ingredient
+## chef_bank_info
 
-Ingredients the customer has available for the request.
+Stores chef payout banking details.
 
-| Column | Type | Description |
-|---|---|---|
-| request_id | INTEGER FK → request | Associated request |
-| ingredient_name | VARCHAR(255) | Name of the ingredient |
+| Column          | Type                        | Description    |
+| --------------- | --------------------------- | -------------- |
+| bank_payment_id | INT PK                      | Bank record ID |
+| chef_id         | VARCHAR(255) FK → chef_data | Chef reference |
+| account_number  | VARCHAR(255)                | Bank account   |
+| routing_number  | VARCHAR(10)                 | Routing number |
 
-Primary key is `(request_id, ingredient_name)`.
+---
+
+# Requests System
+
+## request
+
+Core service request entity.
+
+| Column      | Type                        | Description                                                                 |
+| ----------- | --------------------------- | --------------------------------------------------------------------------- |
+| request_id  | INT PK                      | Request ID                                                                  |
+| customer_id | VARCHAR(255) FK → user      | Requesting customer                                                         |
+| chef_id     | VARCHAR(255) FK → chef_data | Assigned chef (nullable)                                                    |
+| status      | request_status              | Lifecycle state (`pending`, `accepted`, `rejected`, `expired`, `completed`) |
+| created_at  | TIMESTAMP                   | Creation timestamp                                                          |
+| price       | NUMERIC                     | Base price                                                                  |
+| commission  | NUMERIC                     | Auto-calculated (15%)                                                       |
+| summary     | TEXT                        | Request description                                                         |
+| embedding   | VECTOR(768)                 | Semantic representation                                                     |
+
+### Commission Logic
+
+Automatically computed via trigger:
+
+```sql
+commission = price * 0.15
+```
+
+---
+
+## request_ingredient
+
+Ingredients provided or required for a request.
+
+| Column          | Type             | Description       |
+| --------------- | ---------------- | ----------------- |
+| request_id      | INT FK → request | Request reference |
+| ingredient_name | VARCHAR(255)     | Ingredient name   |
+
+Primary key: `(request_id, ingredient_name)`
+
+---
+
+## request_equipment
+
+Kitchen equipment associated with a request.
+
+| Column         | Type             | Description       |
+| -------------- | ---------------- | ----------------- |
+| request_id     | INT FK → request | Request reference |
+| equipment_name | VARCHAR(255)     | Equipment name    |
+
+Primary key: `(request_id, equipment_name)`
 
 ---
 
 # Review System
 
-Customers and chefs can leave reviews after a service is completed.
+## review
 
-## Review
+Stores feedback between users (customer ↔ chef).
 
-| Column | Type | Description |
-|---|---|---|
-| review_id | INTEGER PK | Unique review ID |
-| num_stars | SMALLINT | Star rating |
-| review_content | VARCHAR(255) | Written review content |
-| chef_id | VARCHAR(255) FK → chef | Chef involved in the reviewed service |
-| customer_id | VARCHAR(255) FK → customer | Customer involved in the reviewed service |
-| timestamp | TIMESTAMP | When the review was submitted |
+| Column         | Type                   | Description        |
+| -------------- | ---------------------- | ------------------ |
+| review_id      | INT PK                 | Review ID          |
+| num_stars      | SMALLINT               | Rating (1–5)       |
+| review_content | VARCHAR(255)           | Review text        |
+| reviewer_id    | VARCHAR(255) FK → user | Author of review   |
+| reviewee_id    | VARCHAR(255) FK → user | Target of review   |
+| created_at     | TIMESTAMP              | Timestamp          |
+| embedding      | VECTOR(768)            | Semantic embedding |
 
 ---
 
-# Relationship Summary
+# Vector Search (RAG Support)
 
-- Customers create cooking requests specifying a price, date, summary, and the ingredients and equipment they have on hand.
-- Chefs can be assigned to and accept requests.
-- Both chefs and customers store geographic coordinates enabling proximity-based matching.
-- Customers pay chefs for completed services via stored payment info.
-- Reviews are left after a job is completed, linked to both the chef and customer involved.
+The system uses `pgvector` for semantic retrieval across:
 
-# Key Commands 
-- ./reset.sh
-  - run from root directory 
-  - run whenever you want to refresh the data or start the database
-  - resets the docker db 
-- uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-  - run from backend/
-  - run whenever you start the app
-  - starts the backend 
-- npm install 
-  - run from frontend_files/ 
-  - run the first time you run the app on your machine 
-  - installs dependencies for frontend 
-- npm run dev
-  - run from frontend_files/
-  - run whenever you run the app 
-  - starts the frontend
+* request.embedding
+* chef_data.embedding
+* review.embedding
+
+### Indexing Strategy
+
+IVFFlat indexes with cosine similarity:
+
+* request_embedding_idx
+* chef_embedding_idx
+* review_embedding_idx
+
+Each uses:
+
+```sql
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100)
+```
+
+---
+
+# Relationships Summary
+
+* `user` is the base entity for both chefs and customers
+* `chef_data` extends users with chef-specific metadata
+* `request` connects customers → chefs with status tracking
+* `request_ingredient` and `request_equipment` define constraints/resources per request
+* `payment_info` supports customer transactions
+* `chef_bank_info` supports payouts to chefs
+* `review` connects any two users (chef/customer)
+* embeddings enable semantic matching across requests, chefs, and reviews
+
+---
+
+# Key Database Features
+
+* Role-based user modeling (no duplicated chef/customer tables)
+* Request lifecycle via `request_status` enum
+* Automatic commission calculation via trigger
+* Vector embeddings for semantic search (RAG)
+* Efficient similarity search via IVFFlat indexes
+* Denormalized chef view for API consumption
+
+---
+
+# Key Commands
+
+* `./reset.sh`
+
+  * Resets Docker DB and reloads schema/data
+
+* `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
+
+  * Starts backend server
+
+* `npm install`
+
+  * Installs frontend dependencies
+
+* `npm run dev`
+
+  * Starts frontend development server
