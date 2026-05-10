@@ -202,7 +202,9 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/chef-login" element={<Chef_Login />} />
             <Route path="/customer-login" element={<Customer_Login />} />
+            
             <Route path="/reviews" element={<Reviews />} />
+            
             <Route path="/map" element={<MapPage />} />
             <Route path="/chat" element={<Chat />} />
 

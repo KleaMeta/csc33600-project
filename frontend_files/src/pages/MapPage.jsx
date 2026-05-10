@@ -63,7 +63,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Map + list */}
+      {/* Map and list here */}
       <div style={{ maxWidth: 1100, margin: "2rem auto", padding: "0 2rem" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", border: "0.5px solid #EF9F27", borderRadius: 16, overflow: "hidden", height: "65vh", minHeight: 400 }}>
           {/* Map */}
