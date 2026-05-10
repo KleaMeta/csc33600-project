@@ -147,12 +147,8 @@ Customers and chefs can leave reviews after a service is completed.
 # Key Commands 
 - ./reset.sh
   - run from root directory 
-  - run whenever you want to refresh the data
+  - run whenever you want to refresh the data or start the database
   - resets the docker db 
-- docker compose up
-  - run from root directory 
-  - run whenever you start the app
-  - starts the docker
 - uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
   - run from backend/
   - run whenever you start the app
