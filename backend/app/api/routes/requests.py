@@ -81,9 +81,9 @@ async def get_open_requests(request: Request):
         """
         SELECT request_id, customer_id, chef_id, accepted, date, price, summary
         FROM request
-        WHERE accepted = FALSE
+        WHERE status = 'pending'
           AND (chef_id IS NULL OR chef_id = :chef_id)
-        ORDER BY date ASC, request_id ASC
+        ORDER BY created_at ASC, request_id ASC
         """,
         {"chef_id": chef_id},
     )

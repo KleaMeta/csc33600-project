@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import auth_router, requests_router, system_router
 from app.db.session import database
+from app.api.routes import chat
 
 
 load_dotenv()
@@ -51,3 +52,4 @@ async def shutdown():
 app.include_router(system_router)
 app.include_router(auth_router)
 app.include_router(requests_router)
+app.include_router(chat.router)

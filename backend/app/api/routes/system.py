@@ -29,9 +29,11 @@ async def get_chefs():
         SELECT
             chef.*,
             EXISTS (
-                SELECT 1 FROM sponsor
-                WHERE sponsor.chef_id = chef.chef_id
-                  AND NOW() BETWEEN sponsor.start_date AND sponsor.end_date
+                SELECT 1
+                FROM chef_sponsorship
+                WHERE chef_sponsorship.chef_id = chef.chef_id
+                  AND NOW() BETWEEN chef_sponsorship.start_date
+                                AND chef_sponsorship.end_date
             ) AS is_sponsored
         FROM chef
         ORDER BY is_sponsored DESC, chef.name ASC

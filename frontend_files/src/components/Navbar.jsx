@@ -65,9 +65,17 @@ function Navbar({ submissions, bookings }) {
         <NavbarLink as={Link} to="/map">
           Map
         </NavbarLink>
+        
+        <NavbarLink as={Link} to="/chat">
+          Chat
+        </NavbarLink>
+
+
         <NavbarLink as={Link} to="/About">
           About
         </NavbarLink>
+
+        
 
         {isChef && (
           <NavbarLink as={Link} to="/Requests">
