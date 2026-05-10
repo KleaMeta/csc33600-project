@@ -51,9 +51,30 @@ Extension table for chef-specific attributes.
 
 ---
 
+It’s missing from your rewritten README because it got dropped in the rewrite, not because it’s gone from the schema.
+
+From your actual schema, the table is:
+
+---
+
+## chef_sponsorship
+
+Tracks paid sponsorships for chefs that pay to show up higher in search rankings.
+
+| Column               | Type                        | Description           |
+| -------------------- | --------------------------- | --------------------- |
+| sponsorship_id       | NUMERIC PK                  | Unique sponsorship ID |
+| chef_id              | VARCHAR(255) FK → chef_data | Sponsored chef        |
+| price                | NUMERIC                     | Sponsorship cost      |
+| start_date           | DATE                        | Sponsorship start     |
+| end_date             | DATE                        | Sponsorship end       |
+| payment_info_used_id | INT FK → payment_info       | Payment method used   |
+
+---
+
 ## chef (VIEW)
 
-Denormalized view joining `user` + `chef_data`.
+View joining `user` + `chef_data` to make front-end querying easier.
 
 Exposes:
 
@@ -67,7 +88,7 @@ Exposes:
 
 ## payment_info
 
-Stores customer payment methods.
+Stores customer payment methods and chef payment methods for when they are purchasing sponsorship.
 
 | Column       | Type                   | Description       |
 | ------------ | ---------------------- | ----------------- |
@@ -152,7 +173,7 @@ Primary key: `(request_id, equipment_name)`
 
 ## review
 
-Stores feedback between users (customer ↔ chef).
+Stores feedback between users (customer ↔ chef and chef -> customer).
 
 | Column         | Type                   | Description        |
 | -------------- | ---------------------- | ------------------ |
@@ -200,18 +221,21 @@ WITH (lists = 100)
 * `payment_info` supports customer transactions
 * `chef_bank_info` supports payouts to chefs
 * `review` connects any two users (chef/customer)
+* `chef_sponsorship` entries are linked to a chef and payment method
+* Payment is tied back to `payment_info`
+
+
 * embeddings enable semantic matching across requests, chefs, and reviews
 
 ---
 
 # Key Database Features
 
-* Role-based user modeling (no duplicated chef/customer tables)
 * Request lifecycle via `request_status` enum
 * Automatic commission calculation via trigger
 * Vector embeddings for semantic search (RAG)
 * Efficient similarity search via IVFFlat indexes
-* Denormalized chef view for API consumption
+* Chef view for easier querying
 
 ---
 
@@ -219,7 +243,7 @@ WITH (lists = 100)
 
 * `./reset.sh`
 
-  * Resets Docker DB and reloads schema/data
+  * Resets Docker DB and reloads schema/data. Use whenever you want to start or reload the database.
 
 * `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
 
