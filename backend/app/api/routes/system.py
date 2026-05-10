@@ -47,3 +47,4 @@ async def get_chefs():
         fallback_query = "SELECT * FROM chef ORDER BY name ASC"
         rows = await database.fetch_all(fallback_query)
         return [dict(row) for row in rows]
+

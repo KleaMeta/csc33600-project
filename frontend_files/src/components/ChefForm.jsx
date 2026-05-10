@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import TagInput from "./TagInput";
 import chefImage from "../assets/pexels-sebastian-coman-photography-1598188-3717880.jpg";
 import { useAuth } from "../context/useAuth.js";
@@ -38,6 +39,9 @@ const s = {
 
 function ChefForm({ submissions, setSubmissions }) {
   const { authUser, isCustomer } = useAuth();
+  const location = useLocation();
+  const selectedChefId = location.state?.chefId ?? "";
+
   const [chefs, setChefs] = useState([]);
   const [chefLoadError, setChefLoadError] = useState("");
   const [formData, setFormData] = useState({
@@ -46,7 +50,7 @@ function ChefForm({ submissions, setSubmissions }) {
     ingredients: [],
     equipment: [],
     summary: "",
-    chef_id: "",
+    chef_id: selectedChefId,
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);

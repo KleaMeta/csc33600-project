@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 const FONT_URL =
   "https://fonts.googleapis.com/css2?family=Special+Elite&display=swap";
@@ -28,15 +28,17 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
       </div>
 
       <div style={{ padding: "1rem 1.25rem 0.75rem" }}>
-            <div style={{ marginBottom: 10 }}>
-              <div style={labelStyle}>Request ID</div>
-              <div style={idStyle}>#{req.request_id ?? `REQ-${String(index + 1).padStart(5, "0")}`}</div>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <div style={labelStyle}>Requested chef</div>
-              <div style={valueStyle}>{req.chef_id ?? "Any chef"}</div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div style={{ marginBottom: 10 }}>
+          <div style={labelStyle}>Request ID</div>
+          <div style={idStyle}>#{req.request_id ?? `REQ-${String(index + 1).padStart(5, "0")}`}</div>
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <div style={labelStyle}>Requested chef</div>
+          <div style={valueStyle}>{req.chef_id ?? "Any chef"}</div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div>
             <div style={labelStyle}>Date</div>
             <div style={valueStyle}>{req.date}</div>
@@ -46,6 +48,7 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
             <div style={valueStyle}>{req.price}</div>
           </div>
         </div>
+
         <div>
           <div style={labelStyle}>Summary</div>
           <div style={valueStyle}>{req.summary}</div>
@@ -55,7 +58,6 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
       <div style={{
         borderTop: "2px dashed #EF9F27",
         position: "relative",
-        margin: "0 0",
       }}>
         <span style={notchStyle("left")} />
         <span style={notchStyle("right")} />
@@ -69,6 +71,7 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
               {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients}
             </div>
           </div>
+
           <div>
             <div style={labelStyle}>Equipment</div>
             <div style={{ ...valueStyle, fontSize: 13 }}>
@@ -76,11 +79,12 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
             </div>
           </div>
         </div>
+
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => handleApprove(index)} style={approveBtnStyle}>
+          <button onClick={() => handleApprove(req.request_id)} style={approveBtnStyle}>
             ✓ Approve
           </button>
-          <button onClick={() => handleDeny(index)} style={denyBtnStyle}>
+          <button onClick={() => handleDeny(req.request_id)} style={denyBtnStyle}>
             ✕ Deny
           </button>
         </div>
@@ -89,7 +93,7 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
   );
 }
 
-function Requests({ submissions, handleApprove, handleDeny, requestError }) {
+function Requests({ submissions = [], handleApprove, handleDeny, requestError }) {
   useEffect(() => {
     if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
       const link = document.createElement("link");
@@ -102,13 +106,11 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
-        <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>Chef dashboard</p>
-        <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", margin: "0 0 0.5rem", fontWeight: 400 }}>Open requests</h1>
-        <p style={{ fontSize: 15, color: "#633806", margin: "0 0 2rem" }}>Review and approve incoming customer requests.</p>
+        <p style={smallHeader}>Chef dashboard</p>
+        <h1 style={title}>Open requests</h1>
+        <p style={subtitle}>Review and approve incoming customer requests.</p>
 
-        {requestError && (
-          <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{requestError}</p>
-        )}
+        {requestError && <p style={{ color: "#A32D2D" }}>{requestError}</p>}
 
         {submissions.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 0" }}>
@@ -122,11 +124,10 @@ function Requests({ submissions, handleApprove, handleDeny, requestError }) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            {submissions.map((req, index) => (
+            {submissions.map((req) => (
               <RequestTicket
-                key={req.request_id ?? index}
+                key={req.request_id}
                 req={req}
-                index={index}
                 handleApprove={handleApprove}
                 handleDeny={handleDeny}
               />
@@ -182,7 +183,6 @@ const denyBtnStyle = {
 };
 
 const notchStyle = (side) => ({
-  content: "''",
   width: 14,
   height: 14,
   borderRadius: "50%",
@@ -191,7 +191,28 @@ const notchStyle = (side) => ({
   position: "absolute",
   top: -7,
   ...(side === "left" ? { left: -7 } : { right: -7 }),
-  display: "inline-block",
 });
+
+const smallHeader = {
+  fontSize: 11,
+  textTransform: "uppercase",
+  letterSpacing: "0.1em",
+  color: "#BA7517",
+  fontWeight: 500,
+  marginBottom: "0.4rem",
+};
+
+const title = {
+  fontFamily: "'Pacifico', cursive",
+  fontSize: 32,
+  color: "#412402",
+  margin: "0 0 0.5rem",
+};
+
+const subtitle = {
+  fontSize: 15,
+  color: "#633806",
+  margin: "0 0 2rem",
+};
 
 export default Requests;

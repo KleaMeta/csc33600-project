@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+
 const FONT_URL =
     "https://fonts.googleapis.com/css2?family=Special+Elite&display=swap";
 
@@ -20,9 +21,13 @@ function BookingTicket({ req, handleCancel }) {
             }}>
                 <span style={{
                     fontFamily: "'Special Elite', monospace",
-                    fontSize: 10, color: "#3B6D11",
-                    textAlign: "center", lineHeight: 1.2,
-                }}>CONFIRMED</span>
+                    fontSize: 10,
+                    color: "#3B6D11",
+                    textAlign: "center",
+                    lineHeight: 1.2,
+                }}>
+                    CONFIRMED
+                </span>
             </div>
 
             <div style={{ padding: "1rem 1.25rem 0.75rem" }}>
@@ -30,6 +35,7 @@ function BookingTicket({ req, handleCancel }) {
                     <div style={labelStyle}>Booking ID</div>
                     <div style={idStyle}>#{req.request_id}</div>
                 </div>
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div>
                         <div style={labelStyle}>Date</div>
@@ -40,17 +46,14 @@ function BookingTicket({ req, handleCancel }) {
                         <div style={valueStyle}>{req.price}</div>
                     </div>
                 </div>
+
                 <div>
                     <div style={labelStyle}>Summary</div>
                     <div style={valueStyle}>{req.summary}</div>
                 </div>
             </div>
 
-            <div style={{
-                borderTop: "2px dashed #EF9F27",
-                position: "relative",
-                margin: "0 0",
-            }}>
+            <div style={{ borderTop: "2px dashed #EF9F27", position: "relative" }}>
                 <span style={notchStyle("left")} />
                 <span style={notchStyle("right")} />
             </div>
@@ -63,6 +66,7 @@ function BookingTicket({ req, handleCancel }) {
                             {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients}
                         </div>
                     </div>
+
                     <div>
                         <div style={labelStyle}>Equipment</div>
                         <div style={{ ...valueStyle, fontSize: 13 }}>
@@ -70,15 +74,16 @@ function BookingTicket({ req, handleCancel }) {
                         </div>
                     </div>
                 </div>
+
                 <button onClick={() => handleCancel(req.request_id)} style={cancelBtnStyle}>
-                    ✕ Cancel booking
+                    Cancel
                 </button>
             </div>
         </div>
     );
 }
 
-function Bookings({ bookings, handleCancel, bookingError }) {
+function Bookings({ bookings = [], handleCancel, bookingError }) {
     useEffect(() => {
         if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
             const link = document.createElement("link");
@@ -91,13 +96,11 @@ function Bookings({ bookings, handleCancel, bookingError }) {
     return (
         <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
             <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
-                <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: "0.4rem" }}>My bookings</p>
-                <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", margin: "0 0 0.5rem", fontWeight: 400 }}>Confirmed cookings</h1>
-                <p style={{ fontSize: 15, color: "#633806", margin: "0 0 2rem" }}>All your approved bookings.</p>
+                <p style={smallHeader}>My bookings</p>
+                <h1 style={title}>Confirmed cookings</h1>
+                <p style={subtitle}>All your approved bookings.</p>
 
-                {bookingError && (
-                    <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{bookingError}</p>
-                )}
+                {bookingError && <p style={{ color: "#A32D2D" }}>{bookingError}</p>}
 
                 {bookings.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "3rem 0" }}>
@@ -111,9 +114,9 @@ function Bookings({ bookings, handleCancel, bookingError }) {
                     </div>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                        {bookings.map((req, index) => (
+                        {bookings.map((req) => (
                             <BookingTicket
-                                key={req.request_id ?? index}
+                                key={req.request_id}
                                 req={req}
                                 handleCancel={handleCancel}
                             />
@@ -124,6 +127,17 @@ function Bookings({ bookings, handleCancel, bookingError }) {
         </div>
     );
 }
+
+const cancelBtnStyle = {
+    background: "#FCEBEB",
+    border: "0.5px solid #E24B4A",
+    color: "#791F1F",
+    fontSize: 13,
+    padding: "6px 16px",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontWeight: 500,
+};
 
 const labelStyle = {
     fontSize: 11,
@@ -146,17 +160,6 @@ const idStyle = {
     color: "#BA7517",
 };
 
-const cancelBtnStyle = {
-    background: "#FCEBEB",
-    border: "0.5px solid #E24B4A",
-    color: "#791F1F",
-    fontSize: 13,
-    padding: "6px 16px",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: 500,
-};
-
 const notchStyle = (side) => ({
     width: 14,
     height: 14,
@@ -166,7 +169,28 @@ const notchStyle = (side) => ({
     position: "absolute",
     top: -7,
     ...(side === "left" ? { left: -7 } : { right: -7 }),
-    display: "inline-block",
 });
+
+const smallHeader = {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    color: "#BA7517",
+    fontWeight: 500,
+    marginBottom: "0.4rem",
+};
+
+const title = {
+    fontFamily: "'Pacifico', cursive",
+    fontSize: 32,
+    color: "#412402",
+    margin: "0 0 0.5rem",
+};
+
+const subtitle = {
+    fontSize: 15,
+    color: "#633806",
+    margin: "0 0 2rem",
+};
 
 export default Bookings;

@@ -6,13 +6,13 @@ import ChefForm from "./components/ChefForm.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Navbar from "./components/Navbar.jsx";
-import Requests from "./pages/Requests.jsx";
 import Chef_Login from "./pages/Chef_Login.jsx";
 import Customer_Login from "./pages/Customer_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
-import Bookings from "./pages/Bookings.jsx";
-import About from './pages/About.jsx';
-import Chat from "./pages/Chat.jsx";
+import Activity from './pages/Activity.jsx';
+import About from "./pages/About.jsx";
+import Reviews from "./pages/Reviews.jsx";
+import Chat from './components/Chat.jsx';
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -51,9 +51,7 @@ export default function App() {
             if (errorData.detail) {
               message = errorData.detail;
             }
-          } catch {
-            // Keep generic error message.
-          }
+          } catch { }
           throw new Error(message);
         }
         return response.json();
@@ -66,8 +64,35 @@ export default function App() {
       });
   }, [authUser]);
 
-  const handleApprove = async (index) => {
-    const requestToApprove = submissions[index];
+  useEffect(() => {
+    if (authUser?.role !== "chef" || !authUser?.user_id) {
+      return;
+    }
+
+    fetch(`${BACKEND_URL}/requests/bookings`, {
+      headers: {
+        "X-User-Role": authUser.role,
+        "X-User-Id": authUser.user_id,
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Could not load bookings.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setBookings(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        setRequestError(error.message);
+      });
+  }, [authUser]);
+
+  const handleApprove = async (requestId) => {
+    const requestToApprove = submissions.find(
+      (r) => r.request_id === requestId
+    );
 
     if (!requestToApprove?.request_id) return;
 
@@ -75,7 +100,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `${BACKEND_URL}/requests/${requestToApprove.request_id}/approve`,
+        `${BACKEND_URL}/requests/${requestId}/approve`,
         {
           method: "PATCH",
           headers: {
@@ -94,22 +119,30 @@ export default function App() {
         throw new Error(errorMessage);
       }
 
-      const approvedReq = { ...submissions[index], status: "approved" };
-      setBookings(prev => [...prev, approvedReq]);
-      setSubmissions(prev => prev.filter((_, i) => i !== index));
+      const res = await fetch(`${BACKEND_URL}/requests/bookings`, {
+        headers: {
+          "X-User-Role": authUser.role,
+          "X-User-Id": authUser.user_id,
+        },
+      });
 
+      const data = await res.json();
+      setBookings(Array.isArray(data) ? data : []);
+
+      setSubmissions((prev) =>
+        prev.filter((r) => r.request_id !== requestId)
+      );
     } catch (error) {
       setRequestError(error.message);
     }
   };
 
-  const handleDeny = (index) => {
-    const updated = submissions.filter((_, i) => i !== index);
-    setSubmissions(updated);
+  const handleDeny = (requestId) => {
+    setSubmissions((prev) =>
+      prev.filter((r) => r.request_id !== requestId)
+    );
   };
 
-  // Backend please implemeent patch here to get bookings canceled
-  // and some bookings tables
   const handleCancel = async (requestId) => {
     if (!requestId) return;
     setRequestError("");
@@ -127,15 +160,20 @@ export default function App() {
       );
 
       if (!response.ok) {
-        let errorMessage = "Could not cancel the booking.";
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) errorMessage = errorData.detail;
-        } catch { }
-        throw new Error(errorMessage);
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Could not cancel booking.");
       }
 
-      setBookings(prev => prev.filter(req => req.request_id !== requestId)); // ✅ inside try
+      const refreshed = await fetch(`${BACKEND_URL}/requests/bookings`, {
+        headers: {
+          "X-User-Role": authUser.role,
+          "X-User-Id": authUser.user_id,
+        },
+      });
+
+      const data = await refreshed.json();
+      setBookings(data);
+
     } catch (error) {
       setRequestError(error.message);
     }
@@ -161,48 +199,39 @@ export default function App() {
             />
 
             <Route path="/About" element={<About />} />
-
             <Route path="/login" element={<Login />} />
-
             <Route path="/chef-login" element={<Chef_Login />} />
-
             <Route path="/customer-login" element={<Customer_Login />} />
-
+            
+            <Route path="/reviews" element={<Reviews />} />
+            
             <Route path="/map" element={<MapPage />} />
-
             <Route path="/chat" element={<Chat />} />
 
             <Route
-              path="/requests"
+              path="/activity"
               element={
-                <ChefOnlyRoute>
-                  <Requests
-                    submissions={submissions}
-                    handleApprove={handleApprove}
-                    handleDeny={handleDeny}
-                    requestError={requestError}
-                  />
-                </ChefOnlyRoute>
-              }
-            />
-
-            <Route
-              path="/bookings"
-              element={
-                <Bookings
+                <Activity
+                  submissions={submissions}
                   bookings={bookings}
+                  handleApprove={handleApprove}
+                  handleDeny={handleDeny}
                   handleCancel={handleCancel}
+                  requestError={requestError}
                   bookingError={requestError}
                 />
               }
             />
-            <Route path="/MapPage" element={<Navigate to="/map" replace />} />
-            <Route path="/Login" element={<Navigate to="/login" replace />} />
-            <Route path="/Requests" element={<Navigate to="/requests" replace />} />
 
+            <Route path="/MapPage" element={<MapPage />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/Requests" element={<Navigate to="/activity" replace />} />
+            <Route path="/Bookings" element={<Navigate to="/activity" replace />} />
+            <Route path="/requests" element={<Navigate to="/activity" replace />} />
+            <Route path="/bookings" element={<Navigate to="/activity" replace />} />
           </Routes>
         </main>
-
+        <Chat />
         <Footer />
       </div>
     </Router>
