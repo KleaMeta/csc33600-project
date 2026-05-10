@@ -8,3 +8,4 @@ echo "Rebuilding database from schema and seed files..."
 docker-compose up -d
 
 echo "Database reset complete! Adminer is at http://localhost:8080"
+docker logs -f sp26-csc33600-repo-3141-db-1
