@@ -14,11 +14,21 @@ async def chef_login(login_data: LoginRequest):
     """Validate chef credentials and return role payload."""
 
     chef = await database.fetch_one(
-        "SELECT chef_id, name, email, password FROM chef WHERE email = :email",
+        """
+        SELECT
+            "user".user_id AS chef_id,
+            "user".name,
+            "user".email,
+            "user".password_hash
+        FROM "user"
+        JOIN chef_data ON chef_data.chef_id = "user".user_id
+        WHERE "user".email = :email
+          AND "user".type_of_user = 'chef'
+        """,
         {"email": login_data.email},
     )
 
-    if not chef or chef["password"] != login_data.password:
+    if not chef or chef["password_hash"] != login_data.password:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     return {
@@ -35,11 +45,20 @@ async def customer_login(login_data: LoginRequest):
     """Validate customer credentials and return role payload."""
 
     customer = await database.fetch_one(
-        "SELECT customer_id, name, email, password FROM customer WHERE email = :email",
+        """
+        SELECT
+            user_id AS customer_id,
+            name,
+            email,
+            password_hash
+        FROM "user"
+        WHERE email = :email
+          AND type_of_user = 'customer'
+        """,
         {"email": login_data.email},
     )
 
-    if not customer or customer["password"] != login_data.password:
+    if not customer or customer["password_hash"] != login_data.password:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     return {

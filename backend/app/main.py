@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import auth_router, requests_router, system_router
+from app.api.routes.reviews import router as reviews_router
 from app.db.session import database
 from app.api.routes import chat
 
@@ -52,4 +53,5 @@ async def shutdown():
 app.include_router(system_router)
 app.include_router(auth_router)
 app.include_router(requests_router)
+app.include_router(reviews_router)
 app.include_router(chat.router)
