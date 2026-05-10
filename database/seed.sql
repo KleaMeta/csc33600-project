@@ -1,4 +1,4 @@
--- 1. Insert Users (Customers)
+-- 1. Users (Customers)
 INSERT INTO "user" (
     user_id, type_of_user, name, email, address,
     password_hash, latitude, longitude, profile_pic_file_path
@@ -13,7 +13,7 @@ INSERT INTO "user" (
  'hash_pw_3', 42.3601, -71.0589, 'https://i.pravatar.cc/150?u=cust_03');
 
 
--- 2. Insert Users (Chefs)
+-- 2. Users (Chefs)
 INSERT INTO "user" (
     user_id, type_of_user, name, email, address,
     password_hash, latitude, longitude, profile_pic_file_path, description
@@ -43,8 +43,8 @@ INSERT INTO "user" (
  'Humanitarian chef');
 
 
--- 3. Insert Chef Details
-INSERT INTO chef (chef_id, sponsor_score, food_specialty) VALUES
+-- 3. Chef Data (FIXED: chef_data instead of chef)
+INSERT INTO chef_data (chef_id, sponsor_score, food_specialty) VALUES
 ('chef_01', 9.8, 'British Fine Dining'),
 ('chef_02', 9.2, 'Comfort Food'),
 ('chef_03', 9.5, 'African Fusion'),
@@ -62,7 +62,9 @@ INSERT INTO payment_info (
 
 
 -- 5. Chef Bank Info
-INSERT INTO chef_bank_info (bank_payment_id, chef_id, account_number, routing_number) VALUES
+INSERT INTO chef_bank_info (
+    bank_payment_id, chef_id, account_number, routing_number
+) VALUES
 (501, 'chef_01', '987654321', '123456789'),
 (502, 'chef_02', '123456789', '987654321');
 

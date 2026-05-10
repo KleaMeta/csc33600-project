@@ -42,7 +42,7 @@ function ChefMarkers({ chefs }) {
   return chefs.map(chef => (
     <Marker
       key={chef.chef_id}
-      position={[chef.latitude, chef.longitude]}
+      position={[Number(chef.latitude), Number(chef.longitude)]}      
       icon={createChefIcon(chef.name, zoom)}
     >
       <Popup>
@@ -52,7 +52,20 @@ function ChefMarkers({ chefs }) {
             style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }}
           />
 
-          <strong>{chef.name}</strong>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: '700', fontSize: '16px' }}>
+              {chef.name}
+            </div>
+
+            <div style={{
+              fontSize: '12px',
+              color: '#666',
+              marginTop: '2px'
+            }}>
+              @{chef.chef_id}
+            </div>
+          </div>
+
           <span>{chef.address}</span>
         </div>
       </Popup>

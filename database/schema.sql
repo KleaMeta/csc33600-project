@@ -15,16 +15,16 @@ CREATE TABLE "user" (
     latitude numeric NOT NULL,
     longitude numeric NOT NULL,
     description text,
-    profile_pic_file_path varchar(255) NOT NULL,
-    embedding vector(768)
+    profile_pic_file_path varchar(255) NOT NULL
 );
 
 
 
-CREATE TABLE chef (
+CREATE TABLE chef_data (
     chef_id varchar(255) PRIMARY KEY NOT NULL,
     sponsor_score numeric,
     food_specialty varchar(255),
+    embedding vector(768),
     FOREIGN KEY (chef_id) REFERENCES "user"(user_id)
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE chef_bank_info (
     chef_id varchar(255) NOT NULL,
     account_number varchar(255) NOT NULL,
     routing_number varchar(10) NOT NULL,
-    FOREIGN KEY (chef_id) REFERENCES chef(chef_id)
+    FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id)
 );
 
 
@@ -57,7 +57,7 @@ CREATE TABLE chef_sponsorship (
     start_date date NOT NULL,
     end_date date NOT NULL,
     payment_info_used_id int NOT NULL,
-    FOREIGN KEY (chef_id) REFERENCES chef(chef_id),
+    FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id),
     FOREIGN KEY (payment_info_used_id) REFERENCES payment_info(payment_id)
 );
 
@@ -84,10 +84,11 @@ CREATE TABLE request (
     status request_status NOT NULL DEFAULT 'pending',
     created_at timestamp NOT NULL,
     price numeric NOT NULL,
-    commission numeric NOT NULL,
+    commission numeric,
     summary text,
+    embedding vector(768),
     FOREIGN KEY (customer_id) REFERENCES "user"(user_id),
-    FOREIGN KEY (chef_id) REFERENCES chef(chef_id)
+    FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id)
 );
 
 CREATE TABLE request_ingredient (
@@ -103,6 +104,52 @@ CREATE TABLE request_equipment (
     PRIMARY KEY (request_id, equipment_name),
     FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
+
+
+-- indexes so that RAG doesnt take forever
+
+CREATE INDEX request_embedding_idx
+ON request
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+ANALYZE request;
+
+CREATE INDEX chef_embedding_idx
+ON chef_data
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+ANALYZE chef_data;
+
+
+CREATE INDEX review_embedding_idx
+ON review
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+ANALYZE review;
+
+
+
+
+
+CREATE OR REPLACE VIEW chef AS
+SELECT
+    u.user_id AS chef_id,
+    u.name  AS name,
+    u.email AS email,
+    u.address AS address,
+    u.latitude AS latitude,
+    u.longitude AS longitude,
+    u.description AS description,
+    u.profile_pic_file_path AS profile_pic_file_path,
+    c.sponsor_score AS sponsor_score,
+    c.food_specialty AS food_specialty
+FROM "user" u
+JOIN chef_data c
+    ON u.user_id = c.chef_id
+WHERE u.type_of_user = 'chef';
 
 
 CREATE OR REPLACE FUNCTION set_commission()

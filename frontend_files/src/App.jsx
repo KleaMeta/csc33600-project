@@ -12,6 +12,7 @@ import Customer_Login from "./pages/Customer_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import Bookings from "./pages/Bookings.jsx";
 import About from './pages/About.jsx';
+import Chat from "./pages/Chat.jsx";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -168,6 +169,8 @@ export default function App() {
             <Route path="/customer-login" element={<Customer_Login />} />
 
             <Route path="/map" element={<MapPage />} />
+
+            <Route path="/chat" element={<Chat />} />
 
             <Route
               path="/requests"
