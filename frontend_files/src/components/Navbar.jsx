@@ -12,7 +12,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth.js";
 
 function Navbar({ submissions, bookings }) {
-  const { authUser, isChef, isCustomer, isLoggedIn, logout } = useAuth();
+  const { authUser, isChef, isCustomer, isAdmin, isLoggedIn, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -62,10 +62,12 @@ function Navbar({ submissions, bookings }) {
             <span
               className={`text-xs font-semibold px-3 py-1 rounded-full border ${authUser?.role === "chef"
                 ? "bg-amber-100 text-amber-900 border-amber-300"
-                : "bg-yellow-100 text-yellow-900 border-yellow-300"
+                : authUser?.role === "customer"
+                  ? "bg-yellow-100 text-yellow-900 border-yellow-300"
+                  : "bg-stone-200 text-stone-800 border-stone-300"
                 }`}
             >
-              {authUser?.role === "chef" ? "Chef" : "Customer"}
+              {authUser?.role === "chef" ? "Chef" : authUser?.role === "customer" ? "Customer" : "Admin"}
             </span>
 
             <Button
@@ -141,12 +143,23 @@ function Navbar({ submissions, bookings }) {
           Reviews
         </NavbarLink>
 
-        <NavbarLink
-          as={Link}
-          to="/revenue"
-        >
-          Revenue
-        </NavbarLink>
+        {isChef && (
+          <NavbarLink
+            as={Link}
+            to="/revenue"
+          >
+            Revenue
+          </NavbarLink>
+        )}
+
+        {isAdmin && (
+          <NavbarLink
+            as={Link}
+            to="/admin"
+          >
+            Developer Revenue
+          </NavbarLink>
+        )}
 
         {isLoggedIn && (
           <Dropdown

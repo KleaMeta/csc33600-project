@@ -68,3 +68,33 @@ async def customer_login(login_data: LoginRequest):
         "name": customer["name"],
         "email": customer["email"],
     }
+
+
+@router.post("/admin-login")
+async def admin_login(login_data: LoginRequest):
+    """Validate admin credentials and return role payload."""
+
+    admin_user = await database.fetch_one(
+        """
+        SELECT
+            user_id AS admin_id,
+            name,
+            email,
+            password_hash
+        FROM "user"
+        WHERE email = :email
+          AND type_of_user = 'admin'
+        """,
+        {"email": login_data.email},
+    )
+
+    if not admin_user or admin_user["password_hash"] != login_data.password:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    return {
+        "message": "Login successful.",
+        "role": "admin",
+        "user_id": admin_user["admin_id"],
+        "name": admin_user["name"],
+        "email": admin_user["email"],
+    }

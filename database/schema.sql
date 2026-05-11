@@ -2,7 +2,7 @@ CREATE EXTENSION vector;
 
 -- enums
 CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'rejected', 'expired', 'completed');
-CREATE TYPE user_type AS ENUM ('chef', 'customer');
+CREATE TYPE user_type AS ENUM ('chef', 'customer', 'admin');
 CREATE TYPE user_status AS ENUM ('active', 'deleted');
 CREATE TYPE payment_info_status AS ENUM ('active', 'deleted', 'edited');
 

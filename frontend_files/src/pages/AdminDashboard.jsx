@@ -1,352 +1,732 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-    AreaChart, Area, BarChart, Bar,
-    XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, Legend,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
+import { useAuth } from "../context/useAuth.js";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
-const ADMIN_SECRET = "cheffy2026";
 
 const FONT_URL =
-    "https://fonts.googleapis.com/css2?family=Pacifico&family=DM+Sans:wght@400;500&display=swap";
+  "https://fonts.googleapis.com/css2?family=Pacifico&family=DM+Sans:wght@400;500&display=swap";
 
-const s = {
-    page: { fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" },
-    hero: { padding: "2.5rem 2rem", borderBottom: "0.5px solid #FAC775" },
-    heroLabel: { fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#BA7517", fontWeight: 500, marginBottom: 4 },
-    heroTitle: { fontFamily: "'Pacifico', cursive", fontSize: 32, color: "#412402", fontWeight: 400, margin: "0 0 4px" },
-    heroSub: { fontSize: 14, color: "#633806", margin: 0 },
-    body: { maxWidth: 1200, margin: "0 auto", padding: "2rem", display: "flex", flexDirection: "column", gap: "1.5rem" },
-    sectionLabel: { fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "#BA7517", fontWeight: 500, marginBottom: "0.75rem" },
-    metricsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 },
-    metric: { background: "#fff", border: "0.5px solid #EF9F27", borderRadius: 12, padding: "1.25rem" },
-    metricLbl: { fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", color: "#BA7517", fontWeight: 500, marginBottom: 6 },
-    metricVal: { fontSize: 24, fontWeight: 500, color: "#412402", margin: "0 0 4px" },
-    metricSub: { fontSize: 12, color: "#633806", margin: 0 },
-    chartsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" },
-    chartCard: { background: "#fff", border: "0.5px solid #EF9F27", borderRadius: 12, padding: "1.25rem" },
-    chartTitle: { fontSize: 13, fontWeight: 500, color: "#412402", marginBottom: "0.75rem" },
-    perfGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" },
-    perfCard: { background: "#fff", border: "0.5px solid #EF9F27", borderRadius: 12, padding: "1.25rem" },
-    chefRow: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid #FAC775" },
-    avatar: { width: 32, height: 32, borderRadius: "50%", background: "#FAEEDA", border: "0.5px solid #EF9F27", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 500, color: "#854F0B", flexShrink: 0 },
-    barBg: { flex: 1, height: 6, background: "#FFF8ED", borderRadius: 3, overflow: "hidden" },
-    barFill: { height: "100%", borderRadius: 3, background: "#FF5733" },
-    badge: (up) => ({
-        fontSize: 11, fontWeight: 500, padding: "2px 7px", borderRadius: 20, display: "inline-block", marginTop: 4,
-        background: up ? "#EAF3DE" : "#FCEBEB",
-        color: up ? "#27500A" : "#791F1F",
-    }),
+const styles = {
+  page: {
+    fontFamily: "'DM Sans', sans-serif",
+    background: "#FFF8ED",
+    minHeight: "100vh",
+  },
+  hero: {
+    padding: "2.5rem 2rem",
+    borderBottom: "0.5px solid #FAC775",
+  },
+  heroLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    color: "#BA7517",
+    fontWeight: 500,
+    marginBottom: 4,
+  },
+  heroTitle: {
+    fontFamily: "'Pacifico', cursive",
+    fontSize: 32,
+    color: "#412402",
+    fontWeight: 400,
+    margin: "0 0 4px",
+  },
+  heroSub: {
+    fontSize: 14,
+    color: "#633806",
+    margin: 0,
+  },
+  body: {
+    maxWidth: 1200,
+    margin: "0 auto",
+    padding: "2rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  },
+  sectionLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: "#BA7517",
+    fontWeight: 500,
+    marginBottom: "0.75rem",
+  },
+  cardGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: 12,
+  },
+  card: {
+    background: "#fff",
+    border: "0.5px solid #EF9F27",
+    borderRadius: 12,
+    padding: "1.25rem",
+  },
+  cardButton: {
+    width: "100%",
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    margin: 0,
+    textAlign: "left",
+    cursor: "pointer",
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  cardHint: {
+    fontSize: 11,
+    color: "#8C5A11",
+    marginTop: 8,
+  },
+  metricLbl: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    color: "#BA7517",
+    fontWeight: 500,
+    marginBottom: 6,
+  },
+  metricVal: {
+    fontSize: 24,
+    fontWeight: 500,
+    color: "#412402",
+    margin: "0 0 4px",
+  },
+  metricSub: {
+    fontSize: 12,
+    color: "#633806",
+    margin: 0,
+  },
+  chartCard: {
+    background: "#fff",
+    border: "0.5px solid #EF9F27",
+    borderRadius: 12,
+    padding: "1.25rem",
+  },
+  chartTitle: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#412402",
+    marginBottom: "0.75rem",
+  },
+  text: {
+    fontSize: 13,
+    color: "#633806",
+    margin: 0,
+  },
+  list: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    marginTop: "0.75rem",
+  },
+  listRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 16,
+    borderBottom: "0.5px solid #F5D9A8",
+    paddingBottom: 6,
+  },
+  detailHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "0.75rem",
+    gap: 8,
+  },
+  detailCloseBtn: {
+    border: "0.5px solid #E7B86E",
+    borderRadius: 8,
+    padding: "6px 10px",
+    background: "#FFF8ED",
+    color: "#633806",
+    cursor: "pointer",
+    fontSize: 12,
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  monthActionBtn: {
+    border: "0.5px solid #E7B86E",
+    borderRadius: 8,
+    padding: "6px 10px",
+    background: "#FFF8ED",
+    color: "#633806",
+    cursor: "pointer",
+    fontSize: 12,
+    fontFamily: "'DM Sans', sans-serif",
+    marginBottom: "0.75rem",
+  },
+  tableWrap: {
+    overflowX: "auto",
+    border: "0.5px solid #F5D9A8",
+    borderRadius: 10,
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: 12,
+    color: "#412402",
+  },
+  th: {
+    textAlign: "left",
+    padding: "8px 10px",
+    borderBottom: "0.5px solid #F5D9A8",
+    background: "#FFF3E0",
+    whiteSpace: "nowrap",
+  },
+  td: {
+    padding: "8px 10px",
+    borderBottom: "0.5px solid #F9E4BE",
+    whiteSpace: "nowrap",
+    verticalAlign: "top",
+  },
 };
 
-const fmt = (n) => "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (value) =>
+  "$" +
+  Number(value ?? 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-        <div style={{ background: "#fff", border: "0.5px solid #EF9F27", borderRadius: 8, padding: "8px 12px" }}>
-            <p style={{ fontSize: 12, color: "#BA7517", margin: "0 0 4px", fontWeight: 500 }}>{label}</p>
-            {payload.map((p) => (
-                <p key={p.name} style={{ fontSize: 13, color: "#412402", margin: 0 }}>
-                    {p.name}: {p.name.toLowerCase().includes("booking") ? p.value : fmt(p.value)}
-                </p>
-            ))}
-        </div>
-    );
+const MONTHLY_TOOLTIP_ORDER = {
+  "Developer revenue": 0,
+  Commission: 1,
+  Sponsorship: 2,
 };
-
-function PasswordGate({ onUnlock }) {
-    const [val, setVal] = useState("");
-    const [err, setErr] = useState(false);
-
-    const check = () => {
-        if (val === ADMIN_SECRET) { onUnlock(); }
-        else { setErr(true); }
-    };
-
-    return (
-        <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ textAlign: "center", maxWidth: 360, width: "100%", padding: "2rem" }}>
-                <i className="ti ti-lock" style={{ fontSize: 40, color: "#BA7517" }} aria-hidden="true" />
-                <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: 28, color: "#412402", fontWeight: 400, margin: "1rem 0 0.5rem" }}>
-                    Revenue dashboard
-                </h1>
-                <p style={{ fontSize: 14, color: "#633806", marginBottom: "1.5rem" }}>
-                    Enter the access code to continue.
-                </p>
-                <div style={{ display: "flex", gap: 8 }}>
-                    <input
-                        type="password"
-                        placeholder="Access code"
-                        value={val}
-                        onChange={(e) => { setVal(e.target.value); setErr(false); }}
-                        onKeyDown={(e) => e.key === "Enter" && check()}
-                        style={{ flex: 1, padding: "9px 12px", border: `0.5px solid ${err ? "#E24B4A" : "#EF9F27"}`, borderRadius: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif", background: "#fff", color: "#412402", outline: "none" }}
-                    />
-                    <button
-                        onClick={check}
-                        style={{ padding: "9px 18px", borderRadius: 8, border: "none", background: "#FF5733", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
-                    >
-                        Enter
-                    </button>
-                </div>
-                {err && <p style={{ color: "#A32D2D", fontSize: 12, marginTop: 8 }}>Incorrect code.</p>}
-            </div>
-        </div>
-    );
-}
-
-function Dashboard() {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    useEffect(() => {
-        fetch(`${BACKEND_URL}/admin/revenue/summary`, {
-            headers: { "X-Admin-Secret": ADMIN_SECRET },
-        })
-            .then(async (r) => {
-                if (!r.ok) {
-                    const text = await r.text();
-                    throw new Error(`HTTP ${r.status}: ${text}`);
-                }
-                return r.json();
-            })
-            .then((d) => { setData(d); setLoading(false); })
-            .catch((e) => { setError(e.message); setLoading(false); });
-    }, []);
-
-    if (loading) return (
-        <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ color: "#BA7517" }}>Loading dashboard...</p>
-        </div>
-    );
-
-    if (error) return (
-        <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ color: "#A32D2D" }}>{error}</p>
-        </div>
-    );
-
-    if (!data) return null;
-
-    const { totals, this_month, last_month, mom, monthly_chart, last_period_chart, top_chefs, by_status } = data;
-
-    const maxRev = Math.max(...top_chefs.map((c) => c.revenue), 1);
-
-    const combinedChart = monthly_chart.map((m, i) => ({
-        month: m.month,
-        "Current revenue": m.revenue,
-        "Last period": last_period_chart[i]?.revenue ?? 0,
-        "Gross margin": m.commission,
-        "Bookings": m.bookings,
-        "Completed": m.completed,
-        "Pending": m.active,
-    }));
-
-    const statusColors = { accepted: "#EF9F27", completed: "#FF5733", pending: "#FAC775" };
-
-    return (
-        <div style={s.page}>
-            <div style={s.hero}>
-                <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-                    <p style={s.heroLabel}>Platform admin</p>
-                    <h1 style={s.heroTitle}>Revenue dashboard</h1>
-                    <p style={s.heroSub}>Platform-wide revenue, commission, and team performance.</p>
-                </div>
-            </div>
-
-            <div style={s.body}>
-
-                {/* ── Metric cards ── */}
-                <div>
-                    <p style={s.sectionLabel}>Platform overview</p>
-                    <div style={s.metricsGrid}>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>Total revenue</p>
-                            <p style={s.metricVal}>{fmt(totals.revenue)}</p>
-                            <p style={s.metricSub}>All time</p>
-                        </div>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>Total commission</p>
-                            <p style={s.metricVal}>{fmt(totals.commission)}</p>
-                            <p style={s.metricSub}>15% platform cut</p>
-                        </div>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>This month</p>
-                            <p style={s.metricVal}>{fmt(this_month.revenue)}</p>
-                            <span style={s.badge(mom.revenue >= 0)}>
-                                {mom.revenue >= 0 ? "▲" : "▼"} {Math.abs(mom.revenue)}% MoM
-                            </span>
-                        </div>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>Commission this month</p>
-                            <p style={s.metricVal}>{fmt(this_month.commission)}</p>
-                            <span style={s.badge(mom.commission >= 0)}>
-                                {mom.commission >= 0 ? "▲" : "▼"} {Math.abs(mom.commission)}% MoM
-                            </span>
-                        </div>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>Total bookings</p>
-                            <p style={s.metricVal}>{totals.bookings}</p>
-                            <p style={s.metricSub}>{totals.pending} pending</p>
-                        </div>
-                        <div style={s.metric}>
-                            <p style={s.metricLbl}>Active chefs</p>
-                            <p style={s.metricVal}>{totals.active_chefs}</p>
-                            <p style={s.metricSub}>of {totals.total_chefs} registered</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Revenue charts ── */}
-                {combinedChart.length > 0 && (
-                    <>
-                        <div style={s.chartsGrid}>
-                            <div style={s.chartCard}>
-                                <p style={s.chartTitle}>Comparative revenue — current vs last period</p>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <BarChart data={combinedChart}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#FAC775" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toLocaleString()} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Bar dataKey="Current revenue" fill="#FF5733" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="Last period" fill="#FAC775" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            <div style={s.chartCard}>
-                                <p style={s.chartTitle}>Profit growth — commission earned</p>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <AreaChart data={combinedChart}>
-                                        <defs>
-                                            <linearGradient id="commGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#EF9F27" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#EF9F27" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#FAC775" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toLocaleString()} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Area type="monotone" dataKey="Gross margin" stroke="#FF5733" strokeWidth={2} fill="url(#commGrad)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        <div style={s.chartsGrid}>
-                            <div style={s.chartCard}>
-                                <p style={s.chartTitle}>Bookings volume — completed vs pending</p>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <BarChart data={combinedChart}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#FAC775" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Bar dataKey="Completed" fill="#378ADD" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="Pending" fill="#B5D4F4" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            <div style={s.chartCard}>
-                                <p style={s.chartTitle}>Revenue by booking status</p>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
-                                    {by_status.map((s_) => {
-                                        const total = by_status.reduce((a, b) => a + b.revenue, 0);
-                                        const pct = total > 0 ? Math.round((s_.revenue / total) * 100) : 0;
-                                        return (
-                                            <div key={s_.status}>
-                                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
-                                                    <span style={{ color: "#854F0B", textTransform: "capitalize" }}>{s_.status}</span>
-                                                    <span style={{ fontWeight: 500, color: "#412402" }}>{fmt(s_.revenue)} ({pct}%)</span>
-                                                </div>
-                                                <div style={{ height: 8, background: "#FFF8ED", borderRadius: 4, overflow: "hidden" }}>
-                                                    <div style={{ width: `${pct}%`, height: "100%", background: statusColors[s_.status] ?? "#EF9F27", borderRadius: 4 }} />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                )}
-
-                {/* ── Team performance ── */}
-                <div style={s.perfGrid}>
-                    <div style={s.perfCard}>
-                        <p style={s.sectionLabel}>Top performing chefs</p>
-                        {top_chefs.length === 0 ? (
-                            <p style={{ fontSize: 13, color: "#633806" }}>No data yet.</p>
-                        ) : (
-                            top_chefs.map((chef, i) => (
-                                <div key={chef.chef_id} style={{ ...s.chefRow, ...(i === top_chefs.length - 1 ? { borderBottom: "none" } : {}) }}>
-                                    <div style={s.avatar}>{chef.name.slice(0, 2).toUpperCase()}</div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontSize: 13, fontWeight: 500, color: "#412402", margin: "0 0 1px" }}>{chef.name}</p>
-                                        <p style={{ fontSize: 11, color: "#633806", margin: 0 }}>
-                                            {chef.bookings} bookings {chef.avg_rating ? `· ★ ${chef.avg_rating}` : ""}
-                                        </p>
-                                    </div>
-                                    <div style={s.barBg}>
-                                        <div style={{ ...s.barFill, width: `${Math.round((chef.revenue / maxRev) * 100)}%` }} />
-                                    </div>
-                                    <p style={{ fontSize: 13, fontWeight: 500, color: "#412402", minWidth: 72, textAlign: "right" }}>
-                                        {fmt(chef.revenue)}
-                                    </p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-
-                    <div style={s.perfCard}>
-                        <p style={s.sectionLabel}>Monthly targets</p>
-                        {[
-                            { label: "Revenue target", actual: this_month.revenue, target: last_month.revenue * 1.1 },
-                            { label: "Commission target", actual: this_month.commission, target: last_month.commission * 1.1 },
-                            { label: "Bookings target", actual: this_month.bookings, target: last_month.bookings * 1.1, count: true },
-                        ].map((t) => {
-                            const pct = t.target > 0 ? Math.min(Math.round((t.actual / t.target) * 100), 100) : 0;
-                            const col = pct >= 90 ? "#639922" : pct >= 70 ? "#BA7517" : "#A32D2D";
-                            return (
-                                <div key={t.label} style={{ marginBottom: 16 }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
-                                        <span style={{ color: "#854F0B" }}>{t.label}</span>
-                                        <span style={{ fontWeight: 500, color: col }}>{pct}%</span>
-                                    </div>
-                                    <div style={{ height: 8, background: "#FFF8ED", borderRadius: 4, overflow: "hidden" }}>
-                                        <div style={{ width: `${pct}%`, height: "100%", background: col, borderRadius: 4 }} />
-                                    </div>
-                                    <p style={{ fontSize: 11, color: "#633806", marginTop: 3 }}>
-                                        {t.count ? `${t.actual} / ${Math.round(t.target)}` : `${fmt(t.actual)} / ${fmt(t.target)}`}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    );
-}
 
 export default function AdminDashboard() {
-    const [unlocked, setUnlocked] = useState(false);
+  const { authUser } = useAuth();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [detailView, setDetailView] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [commissionRows, setCommissionRows] = useState([]);
+  const [sponsorshipRows, setSponsorshipRows] = useState([]);
+  const [hoveredMonth, setHoveredMonth] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
 
-    useEffect(() => {
-        if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = FONT_URL;
-            document.head.appendChild(link);
+  useEffect(() => {
+    if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = FONT_URL;
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authUser?.user_id || authUser?.role !== "admin") {
+      return;
+    }
+
+    setLoading(true);
+    fetch(`${BACKEND_URL}/admin/revenue/summary`, {
+      headers: {
+        "X-User-Role": authUser.role,
+        "X-User-Id": authUser.user_id,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          throw new Error(payload.detail || "Could not load developer revenue.");
         }
-    }, []);
+        return res.json();
+      })
+      .then((payload) => {
+        setData(payload);
+        setError("");
+      })
+      .catch((fetchError) => {
+        setError(fetchError.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [authUser]);
 
-    return unlocked ? <Dashboard /> : <PasswordGate onUnlock={() => setUnlocked(true)} />;
+  const fetchAdminJson = async (path) => {
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+      headers: {
+        "X-User-Role": authUser.role,
+        "X-User-Id": authUser.user_id,
+      },
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.detail || "Could not load detail data.");
+    }
+
+    return response.json();
+  };
+
+  const handleOpenCommissionDetails = async () => {
+    setDetailView("commission");
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      const payload = await fetchAdminJson("/admin/revenue/commission-transactions");
+      setCommissionRows(Array.isArray(payload.transactions) ? payload.transactions : []);
+    } catch (fetchError) {
+      setDetailError(fetchError.message);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleOpenSponsorshipDetails = async () => {
+    setDetailView("sponsorship");
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      const payload = await fetchAdminJson("/admin/revenue/sponsorship-transactions");
+      setSponsorshipRows(Array.isArray(payload.transactions) ? payload.transactions : []);
+    } catch (fetchError) {
+      setDetailError(fetchError.message);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleOpenDeveloperDetails = async () => {
+    setDetailView("developer");
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      const [commissionPayload, sponsorshipPayload] = await Promise.all([
+        fetchAdminJson("/admin/revenue/commission-transactions"),
+        fetchAdminJson("/admin/revenue/sponsorship-transactions"),
+      ]);
+      setCommissionRows(Array.isArray(commissionPayload.transactions) ? commissionPayload.transactions : []);
+      setSponsorshipRows(Array.isArray(sponsorshipPayload.transactions) ? sponsorshipPayload.transactions : []);
+    } catch (fetchError) {
+      setDetailError(fetchError.message);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleOpenMonthlyDetails = async () => {
+    if (!hoveredMonth?.month_key) {
+      return;
+    }
+
+    setSelectedMonth(hoveredMonth);
+    setDetailView("monthly");
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      const [commissionPayload, sponsorshipPayload] = await Promise.all([
+        fetchAdminJson("/admin/revenue/commission-transactions"),
+        fetchAdminJson("/admin/revenue/sponsorship-transactions"),
+      ]);
+      setCommissionRows(Array.isArray(commissionPayload.transactions) ? commissionPayload.transactions : []);
+      setSponsorshipRows(Array.isArray(sponsorshipPayload.transactions) ? sponsorshipPayload.transactions : []);
+    } catch (fetchError) {
+      setDetailError(fetchError.message);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const monthlyChart = useMemo(() => {
+    if (!data?.monthly_chart) return [];
+    return data.monthly_chart.map((row) => ({
+      month: row.month,
+      month_key: row.month_key,
+      commission: Number(row.commission ?? 0),
+      sponsorship: Number(row.sponsorship_revenue ?? 0),
+      developer: Number(row.developer_revenue ?? 0),
+    }));
+  }, [data]);
+
+  const monthlyDeveloperTotal = useMemo(
+    () => monthlyChart.reduce((sum, row) => sum + Number(row.developer ?? 0), 0),
+    [monthlyChart],
+  );
+
+  const monthlyCommissionRows = useMemo(() => {
+    if (!selectedMonth?.month_key) return [];
+    return commissionRows.filter((row) => String(row.created_at).startsWith(selectedMonth.month_key));
+  }, [commissionRows, selectedMonth]);
+
+  const monthlySponsorshipRows = useMemo(() => {
+    if (!selectedMonth?.month_key) return [];
+    return sponsorshipRows.filter((row) =>
+      String(row.purchase_timestamp).startsWith(selectedMonth.month_key),
+    );
+  }, [sponsorshipRows, selectedMonth]);
+
+  const handleMonthlyChartMouseMove = (state) => {
+    const payload = state?.activePayload?.[0]?.payload;
+    if (!payload) {
+      return;
+    }
+    setHoveredMonth({
+      month: payload.month,
+      month_key: payload.month_key,
+    });
+  };
+
+  const handleMonthlyChartMouseLeave = () => {
+    setHoveredMonth(null);
+  };
+
+  if (loading) {
+    return (
+      <div style={{ ...styles.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#BA7517" }}>Loading developer revenue...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ ...styles.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#A32D2D" }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const { totals, this_month, mom, top_chefs } = data;
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.hero}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <p style={styles.heroLabel}>Admin only</p>
+          <h1 style={styles.heroTitle}>Developer Revenue</h1>
+          <p style={styles.heroSub}>
+            Platform earnings from commissions and chef sponsorship fees.
+          </p>
+        </div>
+      </div>
+
+      <div style={styles.body}>
+        <div>
+          <p style={styles.sectionLabel}>Revenue Summary</p>
+          <div style={styles.cardGrid}>
+            <div style={styles.card}>
+              <button type="button" style={styles.cardButton} onClick={handleOpenDeveloperDetails}>
+                <p style={styles.metricLbl}>Total developer revenue</p>
+                <p style={styles.metricVal}>{money(totals.developer_revenue)}</p>
+                <p style={styles.metricSub}>Commission + sponsorship</p>
+                <p style={styles.cardHint}>Click to view all rows</p>
+              </button>
+            </div>
+            <div style={styles.card}>
+              <button type="button" style={styles.cardButton} onClick={handleOpenCommissionDetails}>
+                <p style={styles.metricLbl}>Total commissions</p>
+                <p style={styles.metricVal}>{money(totals.commission)}</p>
+                <p style={styles.metricSub}>Accepted and completed orders</p>
+                <p style={styles.cardHint}>Click to view transaction list</p>
+              </button>
+            </div>
+            <div style={styles.card}>
+              <button type="button" style={styles.cardButton} onClick={handleOpenSponsorshipDetails}>
+                <p style={styles.metricLbl}>Total sponsorship fees</p>
+                <p style={styles.metricVal}>{money(totals.sponsorship_revenue)}</p>
+                <p style={styles.metricSub}>{totals.sponsorship_count} sponsorship purchases</p>
+                <p style={styles.cardHint}>Click to view all sponsorship purchases</p>
+              </button>
+            </div>
+            <div style={styles.card}>
+              <p style={styles.metricLbl}>This month developer revenue</p>
+              <p style={styles.metricVal}>{money(this_month.developer_revenue)}</p>
+              <p style={styles.metricSub}>
+                MoM: {mom.developer_revenue >= 0 ? "▲" : "▼"} {Math.abs(mom.developer_revenue)}%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {detailView && (
+          <div style={styles.chartCard}>
+            <div style={styles.detailHeader}>
+              <p style={styles.chartTitle}>
+                {detailView === "commission" && "Commission Transactions"}
+                {detailView === "sponsorship" && "Sponsorship Transactions"}
+                {detailView === "developer" && "Developer Revenue Details"}
+                {detailView === "monthly" && `Monthly Transactions (${selectedMonth?.month || ""})`}
+              </p>
+              <button type="button" style={styles.detailCloseBtn} onClick={() => setDetailView(null)}>
+                Close
+              </button>
+            </div>
+
+            {detailLoading && <p style={styles.text}>Loading detail rows...</p>}
+            {!detailLoading && detailError && <p style={{ ...styles.text, color: "#A32D2D" }}>{detailError}</p>}
+
+            {!detailLoading && !detailError && detailView === "commission" && (
+              <>
+                <p style={styles.text}>{commissionRows.length} commission-backed requests</p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Request ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Customer</th>
+                        <th style={styles.th}>Status</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Commission</th>
+                        <th style={styles.th}>Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {commissionRows.map((row) => (
+                        <tr key={row.request_id}>
+                          <td style={styles.td}>{row.request_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{row.customer_name || row.customer_id}</td>
+                          <td style={styles.td}>{row.status}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{money(row.commission)}</td>
+                          <td style={styles.td}>{row.created_at.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {!detailLoading && !detailError && detailView === "sponsorship" && (
+              <>
+                <p style={styles.text}>{sponsorshipRows.length} sponsorship transactions</p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Sponsorship ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Purchased</th>
+                        <th style={styles.th}>Start</th>
+                        <th style={styles.th}>End</th>
+                        <th style={styles.th}>Payment ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sponsorshipRows.map((row) => (
+                        <tr key={row.sponsorship_id}>
+                          <td style={styles.td}>{row.sponsorship_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{row.purchase_timestamp.slice(0, 10)}</td>
+                          <td style={styles.td}>{row.start_date.slice(0, 10)}</td>
+                          <td style={styles.td}>{row.end_date.slice(0, 10)}</td>
+                          <td style={styles.td}>{row.payment_info_used_id}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {!detailLoading && !detailError && detailView === "developer" && (
+              <>
+                <p style={styles.text}>
+                  {commissionRows.length} commission rows + {sponsorshipRows.length} sponsorship rows
+                </p>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Commission Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Request ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Commission</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {commissionRows.map((row) => (
+                        <tr key={`dev-req-${row.request_id}`}>
+                          <td style={styles.td}>{row.request_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{money(row.commission)}</td>
+                          <td style={styles.td}>{row.created_at.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Sponsorship Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Sponsorship ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sponsorshipRows.map((row) => (
+                        <tr key={`dev-sponsor-${row.sponsorship_id}`}>
+                          <td style={styles.td}>{row.sponsorship_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{row.purchase_timestamp.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {!detailLoading && !detailError && detailView === "monthly" && (
+              <>
+                <p style={styles.text}>
+                  {selectedMonth?.month}: {monthlyCommissionRows.length} commission rows +{" "}
+                  {monthlySponsorshipRows.length} sponsorship rows
+                </p>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Commission Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Request ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Commission</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthlyCommissionRows.map((row) => (
+                        <tr key={`monthly-req-${row.request_id}`}>
+                          <td style={styles.td}>{row.request_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{money(row.commission)}</td>
+                          <td style={styles.td}>{row.created_at.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Sponsorship Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Sponsorship ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthlySponsorshipRows.map((row) => (
+                        <tr key={`monthly-sponsor-${row.sponsorship_id}`}>
+                          <td style={styles.td}>{row.sponsorship_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{row.purchase_timestamp.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        <div style={styles.chartCard}>
+          <p style={styles.chartTitle}>Monthly developer revenue breakdown</p>
+          <p style={{ ...styles.text, marginBottom: "0.75rem" }}>
+            Total in displayed months: <strong>{money(monthlyDeveloperTotal)}</strong>
+          </p>
+          {hoveredMonth?.month_key && (
+            <button type="button" style={styles.monthActionBtn} onClick={handleOpenMonthlyDetails}>
+              View transactions for {hoveredMonth.month}
+            </button>
+          )}
+          {monthlyChart.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart
+                data={monthlyChart}
+                onMouseMove={handleMonthlyChartMouseMove}
+                onMouseLeave={handleMonthlyChartMouseLeave}
+              >
+                <defs>
+                  <linearGradient id="devRevenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8C5A11" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8C5A11" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#FAC775" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#854F0B" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  formatter={(value) => money(value)}
+                  itemSorter={(item) => MONTHLY_TOOLTIP_ORDER[item.name] ?? 99}
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: "0.5px solid #EF9F27",
+                    fontSize: 12,
+                  }}
+                />
+                <Area type="monotone" dataKey="developer" stroke="#8C5A11" fill="url(#devRevenueGrad)" strokeWidth={2} name="Developer revenue" />
+                <Area type="monotone" dataKey="commission" stroke="#FF5733" fill="none" strokeWidth={2} name="Commission" />
+                <Area type="monotone" dataKey="sponsorship" stroke="#EF9F27" fill="none" strokeWidth={2} name="Sponsorship" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <p style={styles.text}>No monthly data yet.</p>
+          )}
+        </div>
+
+        <div style={styles.chartCard}>
+          <p style={styles.chartTitle}>Top chefs by booking revenue</p>
+          {Array.isArray(top_chefs) && top_chefs.length > 0 ? (
+            <div style={styles.list}>
+              {top_chefs.slice(0, 6).map((chef) => (
+                <div key={chef.chef_id} style={styles.listRow}>
+                  <span style={styles.text}>{chef.name}</span>
+                  <span style={{ ...styles.text, fontWeight: 500 }}>{money(chef.revenue)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={styles.text}>No chef performance data yet.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

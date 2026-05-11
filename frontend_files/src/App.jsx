@@ -8,6 +8,7 @@ import Login from "./pages/Login.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Chef_Login from "./pages/Chef_Login.jsx";
 import Customer_Login from "./pages/Customer_Login.jsx";
+import Admin_Login from "./pages/Admin_Login.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import Activity from './pages/Activity.jsx';
 import About from "./pages/About.jsx";
@@ -24,6 +25,16 @@ function ChefOnlyRoute({ children }) {
 
   if (!isChef) {
     return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function AdminOnlyRoute({ children }) {
+  const { isAdmin } = useAuth();
+
+  if (!isAdmin) {
+    return <Navigate to="/admin-login" replace />;
   }
 
   return children;
@@ -205,12 +216,27 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/chef-login" element={<Chef_Login />} />
             <Route path="/customer-login" element={<Customer_Login />} />
+            <Route path="/admin-login" element={<Admin_Login />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/billing" element={<Billing />} />
-            <Route path="/revenue" element={<Revenue />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route
+              path="/revenue"
+              element={(
+                <ChefOnlyRoute>
+                  <Revenue />
+                </ChefOnlyRoute>
+              )}
+            />
+            <Route
+              path="/admin"
+              element={(
+                <AdminOnlyRoute>
+                  <AdminDashboard />
+                </AdminOnlyRoute>
+              )}
+            />
 
             <Route
               path="/activity"

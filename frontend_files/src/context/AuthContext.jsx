@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
       isLoggedIn: Boolean(authUser),
       isChef: authUser?.role === "chef",
       isCustomer: authUser?.role === "customer",
+      isAdmin: authUser?.role === "admin",
       login,
       logout,
     }),
