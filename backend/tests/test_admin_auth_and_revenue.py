@@ -238,3 +238,47 @@ def test_admin_detail_transaction_endpoints_return_rows(client, monkeypatch):
     assert sponsorship_payload["count"] == 1
     assert sponsorship_payload["transactions"][0]["sponsorship_id"] == 707
     assert sponsorship_payload["transactions"][0]["price"] == 219.0
+
+
+def test_generate_monthly_payouts_calls_stored_procedure(client, monkeypatch):
+    execute_calls = []
+
+    async def fake_execute(query, values=None):
+        execute_calls.append((query, values))
+        return None
+
+    async def fake_fetch_all(query, values=None):
+        if "FROM chef_monthly_payout p" in query:
+            return [
+                {
+                    "chef_id": "chef_01",
+                    "chef_name": "Gordon Ramsay",
+                    "payout_month": "2026-05-01",
+                    "gross_revenue": 835,
+                    "total_commission": 125.25,
+                    "net_payout": 709.75,
+                    "request_count": 3,
+                    "generated_at": "2026-05-11 12:00:00",
+                }
+            ]
+        raise AssertionError(f"Unexpected fetch_all query: {query}")
+
+    monkeypatch.setattr(session.database, "execute", fake_execute)
+    monkeypatch.setattr(session.database, "fetch_all", fake_fetch_all)
+
+    response = client.post(
+        "/admin/payouts/generate?month=2026-05-01",
+        headers={"X-User-Role": "admin", "X-User-Id": "admin_01"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["message"] == "Payouts generated."
+    assert payload["month"] == "2026-05-01"
+    assert payload["count"] == 1
+    assert payload["payouts"][0]["chef_id"] == "chef_01"
+
+    assert any(
+        "CALL generate_chef_payouts(:p_month)" in query
+        for query, _ in execute_calls
+    )

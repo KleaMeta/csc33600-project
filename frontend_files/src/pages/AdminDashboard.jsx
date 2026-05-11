@@ -136,6 +136,32 @@ const styles = {
     borderBottom: "0.5px solid #F5D9A8",
     paddingBottom: 6,
   },
+  controlsRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 10,
+    alignItems: "center",
+    marginBottom: "0.75rem",
+  },
+  monthInput: {
+    border: "0.5px solid #E7B86E",
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontSize: 13,
+    fontFamily: "'DM Sans', sans-serif",
+    color: "#412402",
+    background: "#FFF8ED",
+  },
+  actionBtn: {
+    border: "0.5px solid #E7B86E",
+    borderRadius: 8,
+    padding: "8px 12px",
+    background: "#FFF8ED",
+    color: "#633806",
+    cursor: "pointer",
+    fontSize: 12,
+    fontFamily: "'DM Sans', sans-serif",
+  },
   detailHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -215,6 +241,13 @@ export default function AdminDashboard() {
   const [sponsorshipRows, setSponsorshipRows] = useState([]);
   const [hoveredMonth, setHoveredMonth] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(null);
+  const [payoutMonth, setPayoutMonth] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  );
+  const [payoutRows, setPayoutRows] = useState([]);
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [payoutError, setPayoutError] = useState("");
+  const [payoutMessage, setPayoutMessage] = useState("");
 
   useEffect(() => {
     if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
@@ -256,11 +289,13 @@ export default function AdminDashboard() {
       });
   }, [authUser]);
 
-  const fetchAdminJson = async (path) => {
+  const fetchAdminJson = async (path, options = {}) => {
     const response = await fetch(`${BACKEND_URL}${path}`, {
+      ...options,
       headers: {
         "X-User-Role": authUser.role,
         "X-User-Id": authUser.user_id,
+        ...(options.headers || {}),
       },
     });
 
@@ -270,6 +305,42 @@ export default function AdminDashboard() {
     }
 
     return response.json();
+  };
+
+  const monthParam = `${payoutMonth}-01`;
+
+  const handleGeneratePayouts = async () => {
+    setPayoutLoading(true);
+    setPayoutError("");
+    setPayoutMessage("");
+
+    try {
+      const payload = await fetchAdminJson(`/admin/payouts/generate?month=${monthParam}`, {
+        method: "POST",
+      });
+      setPayoutRows(Array.isArray(payload.payouts) ? payload.payouts : []);
+      setPayoutMessage(`Payouts generated for ${payload.month}.`);
+    } catch (fetchError) {
+      setPayoutError(fetchError.message);
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
+
+  const handleLoadPayouts = async () => {
+    setPayoutLoading(true);
+    setPayoutError("");
+    setPayoutMessage("");
+
+    try {
+      const payload = await fetchAdminJson(`/admin/payouts?month=${monthParam}`);
+      setPayoutRows(Array.isArray(payload.payouts) ? payload.payouts : []);
+      setPayoutMessage(`Loaded ${payload.count} payout row(s) for ${payload.month}.`);
+    } catch (fetchError) {
+      setPayoutError(fetchError.message);
+    } finally {
+      setPayoutLoading(false);
+    }
   };
 
   const handleOpenCommissionDetails = async () => {
@@ -452,6 +523,67 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div style={styles.chartCard}>
+          <p style={styles.chartTitle}>Chef Payout Procedure (Stored Procedure Demo)</p>
+          <div style={styles.controlsRow}>
+            <input
+              type="month"
+              value={payoutMonth}
+              onChange={(event) => setPayoutMonth(event.target.value)}
+              style={styles.monthInput}
+            />
+            <button type="button" style={styles.actionBtn} onClick={handleGeneratePayouts}>
+              Generate payouts
+            </button>
+            <button type="button" style={styles.actionBtn} onClick={handleLoadPayouts}>
+              Load existing
+            </button>
+          </div>
+
+          <p style={styles.text}>
+            Generates payout rows by calling <code>CALL generate_chef_payouts(...)</code>.
+          </p>
+
+          {payoutLoading && <p style={{ ...styles.text, marginTop: "0.5rem" }}>Working...</p>}
+          {!payoutLoading && payoutError && (
+            <p style={{ ...styles.text, color: "#A32D2D", marginTop: "0.5rem" }}>{payoutError}</p>
+          )}
+          {!payoutLoading && payoutMessage && (
+            <p style={{ ...styles.text, color: "#27500A", marginTop: "0.5rem" }}>{payoutMessage}</p>
+          )}
+
+          {payoutRows.length > 0 && (
+            <div style={{ ...styles.tableWrap, marginTop: "0.75rem" }}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Chef</th>
+                    <th style={styles.th}>Month</th>
+                    <th style={styles.th}>Gross Revenue</th>
+                    <th style={styles.th}>Commission</th>
+                    <th style={styles.th}>Net Payout</th>
+                    <th style={styles.th}>Requests</th>
+                    <th style={styles.th}>Generated At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payoutRows.map((row) => (
+                    <tr key={`${row.chef_id}-${row.payout_month}`}>
+                      <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                      <td style={styles.td}>{String(row.payout_month).slice(0, 10)}</td>
+                      <td style={styles.td}>{money(row.gross_revenue)}</td>
+                      <td style={styles.td}>{money(row.total_commission)}</td>
+                      <td style={styles.td}>{money(row.net_payout)}</td>
+                      <td style={styles.td}>{row.request_count}</td>
+                      <td style={styles.td}>{String(row.generated_at).slice(0, 19)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {detailView && (

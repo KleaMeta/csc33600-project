@@ -1,5 +1,7 @@
 """Platform-wide developer/admin revenue analytics."""
 
+from datetime import date
+
 from fastapi import APIRouter, Request
 from app.core.auth import require_role
 from app.db.session import database
@@ -374,6 +376,100 @@ async def admin_sponsorship_transactions(request: Request):
                 "start_date": str(row["start_date"]),
                 "end_date": str(row["end_date"]),
                 "payment_info_used_id": row["payment_info_used_id"],
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.post("/admin/payouts/generate")
+async def generate_monthly_chef_payouts(month: date, request: Request):
+    """Run the DB stored procedure that computes chef payouts for a month."""
+    require_role(request, {"admin"})
+
+    await database.execute(
+        "CALL generate_chef_payouts(:p_month)",
+        {"p_month": month},
+    )
+
+    payout_month = month.replace(day=1)
+    rows = await database.fetch_all(
+        """
+        SELECT
+            p.chef_id,
+            u.name AS chef_name,
+            p.payout_month,
+            p.gross_revenue,
+            p.total_commission,
+            p.net_payout,
+            p.request_count,
+            p.generated_at
+        FROM chef_monthly_payout p
+        LEFT JOIN "user" u ON u.user_id = p.chef_id
+        WHERE p.payout_month = :payout_month
+        ORDER BY p.net_payout DESC, p.chef_id ASC
+        """,
+        {"payout_month": payout_month},
+    )
+
+    return {
+        "message": "Payouts generated.",
+        "month": str(payout_month),
+        "count": len(rows),
+        "payouts": [
+            {
+                "chef_id": row["chef_id"],
+                "chef_name": row["chef_name"],
+                "payout_month": str(row["payout_month"]),
+                "gross_revenue": float(row["gross_revenue"]),
+                "total_commission": float(row["total_commission"]),
+                "net_payout": float(row["net_payout"]),
+                "request_count": int(row["request_count"]),
+                "generated_at": str(row["generated_at"]),
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.get("/admin/payouts")
+async def get_monthly_chef_payouts(month: date, request: Request):
+    """Read stored monthly payouts for a given month."""
+    require_role(request, {"admin"})
+
+    payout_month = month.replace(day=1)
+    rows = await database.fetch_all(
+        """
+        SELECT
+            p.chef_id,
+            u.name AS chef_name,
+            p.payout_month,
+            p.gross_revenue,
+            p.total_commission,
+            p.net_payout,
+            p.request_count,
+            p.generated_at
+        FROM chef_monthly_payout p
+        LEFT JOIN "user" u ON u.user_id = p.chef_id
+        WHERE p.payout_month = :payout_month
+        ORDER BY p.net_payout DESC, p.chef_id ASC
+        """,
+        {"payout_month": payout_month},
+    )
+
+    return {
+        "month": str(payout_month),
+        "count": len(rows),
+        "payouts": [
+            {
+                "chef_id": row["chef_id"],
+                "chef_name": row["chef_name"],
+                "payout_month": str(row["payout_month"]),
+                "gross_revenue": float(row["gross_revenue"]),
+                "total_commission": float(row["total_commission"]),
+                "net_payout": float(row["net_payout"]),
+                "request_count": int(row["request_count"]),
+                "generated_at": str(row["generated_at"]),
             }
             for row in rows
         ],

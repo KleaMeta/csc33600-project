@@ -112,6 +112,19 @@ CREATE TABLE request_equipment (
     FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
 
+CREATE TABLE chef_monthly_payout (
+    payout_id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    chef_id varchar(255) NOT NULL,
+    payout_month date NOT NULL,
+    gross_revenue numeric NOT NULL,
+    total_commission numeric NOT NULL,
+    net_payout numeric NOT NULL,
+    request_count int NOT NULL,
+    generated_at timestamp NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id),
+    UNIQUE (chef_id, payout_month)
+);
+
 
 -- indexes so that RAG doesnt take forever
 
@@ -198,3 +211,41 @@ BEFORE INSERT OR UPDATE OF chef_id
 ON chef_data
 FOR EACH ROW
 EXECUTE FUNCTION enforce_chef_user_type();
+
+
+CREATE OR REPLACE PROCEDURE generate_chef_payouts(IN p_month date)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    month_start date;
+    next_month_start date;
+BEGIN
+    month_start := DATE_TRUNC('month', p_month)::date;
+    next_month_start := (month_start + INTERVAL '1 month')::date;
+
+    DELETE FROM chef_monthly_payout
+    WHERE payout_month = month_start;
+
+    INSERT INTO chef_monthly_payout (
+        chef_id,
+        payout_month,
+        gross_revenue,
+        total_commission,
+        net_payout,
+        request_count
+    )
+    SELECT
+        r.chef_id,
+        month_start,
+        COALESCE(SUM(r.price), 0) AS gross_revenue,
+        COALESCE(SUM(r.commission), 0) AS total_commission,
+        COALESCE(SUM(r.price - r.commission), 0) AS net_payout,
+        COUNT(*) AS request_count
+    FROM request r
+    WHERE r.chef_id IS NOT NULL
+      AND r.status IN ('accepted', 'completed')
+      AND r.created_at >= month_start
+      AND r.created_at < next_month_start
+    GROUP BY r.chef_id;
+END;
+$$;
