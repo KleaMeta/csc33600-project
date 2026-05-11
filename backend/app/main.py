@@ -13,8 +13,7 @@ from app.db.session import database
 from app.api.routes import chat, revenue
 from app.api.routes import banking, payment_info, billing
 from app.api.routes import admin
-user_id = int(payload.user_id)
-cc_number = int(payload.cc_number)
+
 load_dotenv()
 
 app = FastAPI(title="Cheffy Backend")
@@ -60,5 +59,5 @@ app.include_router(chat.router)
 app.include_router(banking.router)
 app.include_router(payment_info.router)
 app.include_router(billing.router)
-app.include_roster(revenue.router)
-app.include_roster(admin.router)
+app.include_router(revenue.router)
+app.include_router(admin.router)
