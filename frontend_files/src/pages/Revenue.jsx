@@ -112,7 +112,7 @@ export default function Revenue() {
     return (
         <div style={s.page}>
 
-            {/* ── Hero ── */}
+            {/* Hero right here */}
             <div style={s.hero}>
                 <div style={{ maxWidth: 1100, margin: "0 auto" }}>
                     <p style={s.heroLabel}>Chef dashboard</p>
@@ -122,8 +122,7 @@ export default function Revenue() {
             </div>
 
             <div style={s.body}>
-
-                {/* ── Metric cards ── */}
+                {/* The Metrics */}
                 <div style={s.metricsGrid}>
                     <div style={s.metricCard}>
                         <p style={s.metricLabel}>Total revenue</p>
@@ -149,7 +148,7 @@ export default function Revenue() {
                     </div>
                 </div>
 
-                {/* ── Charts ── */}
+                {/* Charts */}
                 {data.monthly_chart.length > 0 && (
                     <div style={s.chartsGrid}>
 
@@ -188,7 +187,7 @@ export default function Revenue() {
                     </div>
                 )}
 
-                {/* ── Recent bookings ── */}
+                {/* Recent bookings */}
                 {data.recent_bookings.length > 0 && (
                     <div style={s.tableCard}>
                         <p style={s.tableLabel}>Recent bookings</p>

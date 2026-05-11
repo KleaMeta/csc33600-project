@@ -11,7 +11,6 @@ const ADMIN_SECRET = "cheffy2026";
 const FONT_URL =
     "https://fonts.googleapis.com/css2?family=Pacifico&family=DM+Sans:wght@400;500&display=swap";
 
-// ── Shared styles ──────────────────────────────────────────────────────────
 const s = {
     page: { fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" },
     hero: { padding: "2.5rem 2rem", borderBottom: "0.5px solid #FAC775" },
@@ -57,7 +56,6 @@ const CustomTooltip = ({ active, payload, label }) => {
     );
 };
 
-// ── Password gate ──────────────────────────────────────────────────────────
 function PasswordGate({ onUnlock }) {
     const [val, setVal] = useState("");
     const [err, setErr] = useState(false);
@@ -99,7 +97,6 @@ function PasswordGate({ onUnlock }) {
     );
 }
 
-// ── Main dashboard ─────────────────────────────────────────────────────────
 function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -120,7 +117,6 @@ function Dashboard() {
             .catch((e) => { setError(e.message); setLoading(false); });
     }, []);
 
-    // ✅ Guards BEFORE any destructuring
     if (loading) return (
         <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <p style={{ color: "#BA7517" }}>Loading dashboard...</p>
@@ -135,7 +131,6 @@ function Dashboard() {
 
     if (!data) return null;
 
-    // ✅ Only destructure after guards pass
     const { totals, this_month, last_month, mom, monthly_chart, last_period_chart, top_chefs, by_status } = data;
 
     const maxRev = Math.max(...top_chefs.map((c) => c.revenue), 1);
@@ -341,7 +336,6 @@ function Dashboard() {
     );
 }
 
-// ── Root export ────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
     const [unlocked, setUnlocked] = useState(false);
 
