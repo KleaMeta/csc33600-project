@@ -1,5 +1,3 @@
----
-
 # Project Summary
 
 A two-sided marketplace where **customers submit cooking requests** and **chefs accept and fulfill them**.
@@ -324,5 +322,3 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 npm install
 npm run dev
 ```
-
----
