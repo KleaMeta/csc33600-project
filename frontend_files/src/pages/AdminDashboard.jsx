@@ -153,6 +153,17 @@ const styles = {
     fontSize: 12,
     fontFamily: "'DM Sans', sans-serif",
   },
+  monthActionBtn: {
+    border: "0.5px solid #E7B86E",
+    borderRadius: 8,
+    padding: "6px 10px",
+    background: "#FFF8ED",
+    color: "#633806",
+    cursor: "pointer",
+    fontSize: 12,
+    fontFamily: "'DM Sans', sans-serif",
+    marginBottom: "0.75rem",
+  },
   tableWrap: {
     overflowX: "auto",
     border: "0.5px solid #F5D9A8",
@@ -202,6 +213,8 @@ export default function AdminDashboard() {
   const [detailError, setDetailError] = useState("");
   const [commissionRows, setCommissionRows] = useState([]);
   const [sponsorshipRows, setSponsorshipRows] = useState([]);
+  const [hoveredMonth, setHoveredMonth] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
 
   useEffect(() => {
     if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
@@ -305,15 +318,71 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleOpenMonthlyDetails = async () => {
+    if (!hoveredMonth?.month_key) {
+      return;
+    }
+
+    setSelectedMonth(hoveredMonth);
+    setDetailView("monthly");
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      const [commissionPayload, sponsorshipPayload] = await Promise.all([
+        fetchAdminJson("/admin/revenue/commission-transactions"),
+        fetchAdminJson("/admin/revenue/sponsorship-transactions"),
+      ]);
+      setCommissionRows(Array.isArray(commissionPayload.transactions) ? commissionPayload.transactions : []);
+      setSponsorshipRows(Array.isArray(sponsorshipPayload.transactions) ? sponsorshipPayload.transactions : []);
+    } catch (fetchError) {
+      setDetailError(fetchError.message);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   const monthlyChart = useMemo(() => {
     if (!data?.monthly_chart) return [];
     return data.monthly_chart.map((row) => ({
       month: row.month,
+      month_key: row.month_key,
       commission: Number(row.commission ?? 0),
       sponsorship: Number(row.sponsorship_revenue ?? 0),
       developer: Number(row.developer_revenue ?? 0),
     }));
   }, [data]);
+
+  const monthlyDeveloperTotal = useMemo(
+    () => monthlyChart.reduce((sum, row) => sum + Number(row.developer ?? 0), 0),
+    [monthlyChart],
+  );
+
+  const monthlyCommissionRows = useMemo(() => {
+    if (!selectedMonth?.month_key) return [];
+    return commissionRows.filter((row) => String(row.created_at).startsWith(selectedMonth.month_key));
+  }, [commissionRows, selectedMonth]);
+
+  const monthlySponsorshipRows = useMemo(() => {
+    if (!selectedMonth?.month_key) return [];
+    return sponsorshipRows.filter((row) =>
+      String(row.purchase_timestamp).startsWith(selectedMonth.month_key),
+    );
+  }, [sponsorshipRows, selectedMonth]);
+
+  const handleMonthlyChartMouseMove = (state) => {
+    const payload = state?.activePayload?.[0]?.payload;
+    if (!payload) {
+      return;
+    }
+    setHoveredMonth({
+      month: payload.month,
+      month_key: payload.month_key,
+    });
+  };
+
+  const handleMonthlyChartMouseLeave = () => {
+    setHoveredMonth(null);
+  };
 
   if (loading) {
     return (
@@ -392,6 +461,7 @@ export default function AdminDashboard() {
                 {detailView === "commission" && "Commission Transactions"}
                 {detailView === "sponsorship" && "Sponsorship Transactions"}
                 {detailView === "developer" && "Developer Revenue Details"}
+                {detailView === "monthly" && `Monthly Transactions (${selectedMonth?.month || ""})`}
               </p>
               <button type="button" style={styles.detailCloseBtn} onClick={() => setDetailView(null)}>
                 Close
@@ -530,14 +600,89 @@ export default function AdminDashboard() {
                 </div>
               </>
             )}
+
+            {!detailLoading && !detailError && detailView === "monthly" && (
+              <>
+                <p style={styles.text}>
+                  {selectedMonth?.month}: {monthlyCommissionRows.length} commission rows +{" "}
+                  {monthlySponsorshipRows.length} sponsorship rows
+                </p>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Commission Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Request ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Commission</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthlyCommissionRows.map((row) => (
+                        <tr key={`monthly-req-${row.request_id}`}>
+                          <td style={styles.td}>{row.request_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{money(row.commission)}</td>
+                          <td style={styles.td}>{row.created_at.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p style={{ ...styles.text, marginTop: "0.75rem", fontWeight: 500 }}>
+                  Sponsorship Transactions
+                </p>
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>Sponsorship ID</th>
+                        <th style={styles.th}>Chef</th>
+                        <th style={styles.th}>Price</th>
+                        <th style={styles.th}>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monthlySponsorshipRows.map((row) => (
+                        <tr key={`monthly-sponsor-${row.sponsorship_id}`}>
+                          <td style={styles.td}>{row.sponsorship_id}</td>
+                          <td style={styles.td}>{row.chef_name || row.chef_id}</td>
+                          <td style={styles.td}>{money(row.price)}</td>
+                          <td style={styles.td}>{row.purchase_timestamp.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
 
         <div style={styles.chartCard}>
           <p style={styles.chartTitle}>Monthly developer revenue breakdown</p>
+          <p style={{ ...styles.text, marginBottom: "0.75rem" }}>
+            Total in displayed months: <strong>{money(monthlyDeveloperTotal)}</strong>
+          </p>
+          {hoveredMonth?.month_key && (
+            <button type="button" style={styles.monthActionBtn} onClick={handleOpenMonthlyDetails}>
+              View transactions for {hoveredMonth.month}
+            </button>
+          )}
           {monthlyChart.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={monthlyChart}>
+              <AreaChart
+                data={monthlyChart}
+                onMouseMove={handleMonthlyChartMouseMove}
+                onMouseLeave={handleMonthlyChartMouseLeave}
+              >
                 <defs>
                   <linearGradient id="devRevenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8C5A11" stopOpacity={0.3} />

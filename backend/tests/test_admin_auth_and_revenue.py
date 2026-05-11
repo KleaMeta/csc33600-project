@@ -177,6 +177,7 @@ def test_admin_revenue_summary_includes_commission_and_sponsorship(client, monke
     assert payload["totals"]["developer_revenue"] == 650.0
     assert payload["this_month"]["sponsorship_revenue"] == 200.0
     assert payload["this_month"]["developer_revenue"] == 260.0
+    assert payload["monthly_chart"][0]["month_key"] == "2026-05"
 
 
 def test_admin_commission_transactions_requires_admin(client):

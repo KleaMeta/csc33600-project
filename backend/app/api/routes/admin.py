@@ -7,6 +7,13 @@ from app.db.session import database
 router = APIRouter()
 
 
+def _to_month_key(value) -> str:
+    """Return a stable YYYY-MM key from DB date/timestamp values."""
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m")
+    return str(value)[:7]
+
+
 @router.get("/admin/revenue/summary")
 async def admin_revenue_summary(request: Request):
     """Return platform-wide developer revenue summary for admin users."""
@@ -245,6 +252,7 @@ async def admin_revenue_summary(request: Request):
         "monthly_chart": [
             {
                 "month":      row["month"],
+                "month_key": _to_month_key(row["month_date"]),
                 "revenue":    float(row["revenue"]),
                 "commission": float(row["commission"]),
                 "sponsorship_revenue": sponsorship_by_month.get(row["month_date"], {}).get("sponsorship_revenue", 0.0),
