@@ -12,6 +12,14 @@ INSERT INTO "user" (
 ('cust_03', 'customer', 'Julia Child', 'julia@kitchen.org', '789 Butter Blvd',
  'hash_pw_3', 42.3601, -71.0589, 'https://i.pravatar.cc/150?u=cust_03');
 
+-- 1b. Admin user
+INSERT INTO "user" (
+    user_id, type_of_user, name, email, address,
+    password_hash, latitude, longitude, profile_pic_file_path
+) VALUES
+('admin_01', 'admin', 'Admin User', 'admin@gmail.com', 'Platform HQ',
+ 'pass', 40.7128, -74.0060, 'https://i.pravatar.cc/150?u=admin_01');
+
 
 -- 2. Users (Chefs)
 INSERT INTO "user" (
