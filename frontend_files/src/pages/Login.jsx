@@ -28,7 +28,7 @@ function Login() {
           Select your role to continue.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
 
           <Link to="/customer-login" style={{ textDecoration: "none" }}>
             <div style={{
@@ -69,6 +69,27 @@ function Login() {
               </p>
               <div style={{ marginTop: "1.5rem", background: "#FF5733", color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500 }}>
                 Login as chef
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/admin-login" style={{ textDecoration: "none" }}>
+            <div style={{
+              background: "#fff",
+              border: "0.5px solid #EF9F27",
+              borderRadius: 16,
+              padding: "2rem 1.5rem",
+              cursor: "pointer",
+            }}>
+              <div style={{ fontSize: 40, color: "#8C5A11", marginBottom: "1rem" }}>
+                <i className="ti ti-shield-lock" aria-hidden="true" />
+              </div>
+              <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "0 0 0.5rem" }}>Admin</p>
+              <p style={{ fontSize: 13, color: "#633806", margin: 0, lineHeight: 1.6 }}>
+                Access developer revenue analytics.
+              </p>
+              <div style={{ marginTop: "1.5rem", background: "#8C5A11", color: "#fff", padding: "10px 0", borderRadius: 8, fontSize: 14, fontWeight: 500 }}>
+                Login as admin
               </div>
             </div>
           </Link>
