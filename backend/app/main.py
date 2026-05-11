@@ -11,8 +11,8 @@ from app.api.routes import auth_router, requests_router, system_router
 from app.api.routes.reviews import router as reviews_router
 from app.db.session import database
 from app.api.routes import chat, revenue
-from app.api.routes import banking, payment_info, billing
-from app.api.routes import admin
+from app.api.routes import banking, payment_info, financial_hub
+from app.api.routes import admin, sponsorships
 
 load_dotenv()
 
@@ -58,6 +58,7 @@ app.include_router(reviews_router)
 app.include_router(chat.router)
 app.include_router(banking.router)
 app.include_router(payment_info.router)
-app.include_router(billing.router)
+app.include_router(financial_hub.router)
 app.include_router(revenue.router)
 app.include_router(admin.router)
+app.include_router(sponsorships.router)

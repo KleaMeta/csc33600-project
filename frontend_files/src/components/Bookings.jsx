@@ -3,7 +3,7 @@ import { useEffect } from "react";
 const FONT_URL =
     "https://fonts.googleapis.com/css2?family=Special+Elite&display=swap";
 
-function BookingTicket({ req, handleCancel }) {
+function BookingTicket({ req, handleCancel, isChef }) {
     return (
         <div style={{
             background: "#FAEEDA",
@@ -12,6 +12,7 @@ function BookingTicket({ req, handleCancel }) {
             position: "relative",
             overflow: "visible",
         }}>
+
             <div style={{
                 position: "absolute", top: "1rem", right: "1rem",
                 width: 64, height: 64, borderRadius: "50%",
@@ -36,6 +37,16 @@ function BookingTicket({ req, handleCancel }) {
                     <div style={idStyle}>#{req.request_id}</div>
                 </div>
 
+                {/* Show the other party */}
+                <div style={{ marginBottom: 10 }}>
+                    <div style={labelStyle}>{isChef ? "Customer" : "Chef"}</div>
+                    <div style={valueStyle}>
+                        {isChef
+                            ? (req.customer_id ?? "—")
+                            : (req.chef_id ?? "—")}
+                    </div>
+                </div>
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div>
                         <div style={labelStyle}>Date</div>
@@ -43,7 +54,7 @@ function BookingTicket({ req, handleCancel }) {
                     </div>
                     <div>
                         <div style={labelStyle}>Price</div>
-                        <div style={valueStyle}>{req.price}</div>
+                        <div style={valueStyle}>${req.price}</div>
                     </div>
                 </div>
 
@@ -63,27 +74,26 @@ function BookingTicket({ req, handleCancel }) {
                     <div>
                         <div style={labelStyle}>Ingredients</div>
                         <div style={{ ...valueStyle, fontSize: 13 }}>
-                            {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients}
+                            {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients || "None"}
                         </div>
                     </div>
-
                     <div>
                         <div style={labelStyle}>Equipment</div>
                         <div style={{ ...valueStyle, fontSize: 13 }}>
-                            {Array.isArray(req.equipment) ? req.equipment.join(", ") : req.equipment}
+                            {Array.isArray(req.equipment) ? req.equipment.join(", ") : req.equipment || "None"}
                         </div>
                     </div>
                 </div>
 
                 <button onClick={() => handleCancel(req.request_id)} style={cancelBtnStyle}>
-                    Cancel
+                    {isChef ? "Cancel Booking" : "Cancel Booking"}
                 </button>
             </div>
         </div>
     );
 }
 
-function Bookings({ bookings = [], handleCancel, bookingError }) {
+function Bookings({ bookings = [], handleCancel, bookingError, isChef }) {
     useEffect(() => {
         if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
             const link = document.createElement("link");
@@ -94,36 +104,41 @@ function Bookings({ bookings = [], handleCancel, bookingError }) {
     }, []);
 
     return (
-        <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
-            <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
-                <p style={smallHeader}>My bookings</p>
-                <h1 style={title}>Confirmed cookings</h1>
-                <p style={subtitle}>All your approved bookings.</p>
+        <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={smallHeader}>{isChef ? "Chef dashboard" : "My bookings"}</p>
+            <h2 style={title}>{isChef ? "Confirmed bookings" : "Confirmed cookings"}</h2>
+            <p style={subtitle}>
+                {isChef
+                    ? "All your approved and confirmed bookings."
+                    : "All your approved bookings."}
+            </p>
 
-                {bookingError && <p style={{ color: "#A32D2D" }}>{bookingError}</p>}
+            {bookingError && <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{bookingError}</p>}
 
-                {bookings.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "3rem 0" }}>
-                        <i className="ti ti-calendar" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
-                        <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
-                            No reservations on the books...
-                        </p>
-                        <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
-                            Approved requests will show up here as confirmed bookings.
-                        </p>
-                    </div>
-                ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                        {bookings.map((req) => (
-                            <BookingTicket
-                                key={req.request_id}
-                                req={req}
-                                handleCancel={handleCancel}
-                            />
-                        ))}
-                    </div>
-                )}
-            </div>
+            {bookings.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "3rem 0" }}>
+                    <i className="ti ti-calendar" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
+                    <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
+                        No reservations on the books...
+                    </p>
+                    <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
+                        {isChef
+                            ? "Approved requests will show up here as confirmed bookings."
+                            : "Once a chef approves your request, it'll appear here."}
+                    </p>
+                </div>
+            ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    {bookings.map((req) => (
+                        <BookingTicket
+                            key={req.request_id}
+                            req={req}
+                            handleCancel={handleCancel}
+                            isChef={isChef}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -158,6 +173,7 @@ const idStyle = {
     fontFamily: "'Special Elite', monospace",
     fontSize: 13,
     color: "#BA7517",
+    marginBottom: 10,
 };
 
 const notchStyle = (side) => ({
@@ -177,20 +193,21 @@ const smallHeader = {
     letterSpacing: "0.1em",
     color: "#BA7517",
     fontWeight: 500,
-    marginBottom: "0.4rem",
+    margin: 0,
 };
 
 const title = {
     fontFamily: "'Pacifico', cursive",
-    fontSize: 32,
+    fontSize: 26,
     color: "#412402",
-    margin: "0 0 0.5rem",
+    margin: "0.25rem 0 0.4rem",
+    fontWeight: 400,
 };
 
 const subtitle = {
-    fontSize: 15,
+    fontSize: 14,
     color: "#633806",
-    margin: "0 0 2rem",
+    margin: "0 0 1.5rem",
 };
 
 export default Bookings;

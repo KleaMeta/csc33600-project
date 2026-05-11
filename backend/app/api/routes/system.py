@@ -23,8 +23,6 @@ async def get_chefs():
     fall back to a plain chef list so the UI can still render all chefs.
     """
 
-    # `is_sponsored` flips to TRUE when the chef has at least one active sponsor row
-    # (NOW() falls between start_date and end_date). EXISTS keeps the chef row unique.
     sponsored_query = """
         SELECT
             chef.*,
@@ -43,7 +41,6 @@ async def get_chefs():
         rows = await database.fetch_all(sponsored_query)
         return [dict(row) for row in rows]
     except Exception:
-        # Sponsor ranking is optional metadata. If it fails, still return all chefs.
         fallback_query = "SELECT * FROM chef ORDER BY name ASC"
         rows = await database.fetch_all(fallback_query)
         return [dict(row) for row in rows]

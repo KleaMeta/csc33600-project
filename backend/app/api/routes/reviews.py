@@ -12,7 +12,6 @@ async def get_my_reviews(
     if not x_user_id or not x_user_role:
         raise HTTPException(status_code=401, detail="Missing user information.")
 
-    # convert once (important because DB uses varchar but still safer consistently)
     user_id = str(x_user_id)
 
     if x_user_role == "customer":

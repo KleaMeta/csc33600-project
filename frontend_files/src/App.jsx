@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/useAuth.js";
 import Footer from "./components/Footer.jsx";
@@ -13,7 +13,7 @@ import Activity from './pages/Activity.jsx';
 import About from "./pages/About.jsx";
 import Reviews from "./pages/Reviews.jsx";
 import Chat from './components/Chat.jsx';
-import Billing from './components/Billing.jsx';
+import Billing from './components/Financial_Hub.jsx';
 import Revenue from './pages/Revenue.jsx';
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 
@@ -35,12 +35,18 @@ export default function App() {
   const [requestError, setRequestError] = useState("");
   const { authUser } = useAuth();
 
-  useEffect(() => {
-    if (authUser?.role !== "chef" || !authUser?.user_id) {
-      return;
-    }
+  const isChef = authUser?.role === "chef";
+  const isCustomer = authUser?.role === "customer";
 
-    fetch(`${BACKEND_URL}/requests/open`, {
+  // Fetch submissions — chefs get all open requests, customers get their own
+  const fetchSubmissions = useCallback(() => {
+    if (!authUser?.user_id) return;
+
+    const endpoint = isChef
+      ? `${BACKEND_URL}/requests/open`
+      : `${BACKEND_URL}/requests/my`;  // customer's own outgoing requests
+
+    fetch(endpoint, {
       headers: {
         "X-User-Role": authUser.role,
         "X-User-Id": authUser.user_id,
@@ -48,12 +54,10 @@ export default function App() {
     })
       .then(async (response) => {
         if (!response.ok) {
-          let message = "Could not load open requests.";
+          let message = "Could not load requests.";
           try {
             const errorData = await response.json();
-            if (errorData.detail) {
-              message = errorData.detail;
-            }
+            if (errorData.detail) message = errorData.detail;
           } catch { }
           throw new Error(message);
         }
@@ -65,12 +69,11 @@ export default function App() {
       .catch((error) => {
         setRequestError(error.message);
       });
-  }, [authUser]);
+  }, [authUser, isChef]);
 
-  useEffect(() => {
-    if (authUser?.role !== "chef" || !authUser?.user_id) {
-      return;
-    }
+  // Fetch bookings — chefs get their approved bookings, customers get theirs
+  const fetchBookings = useCallback(() => {
+    if (!authUser?.user_id) return;
 
     fetch(`${BACKEND_URL}/requests/bookings`, {
       headers: {
@@ -79,9 +82,7 @@ export default function App() {
       },
     })
       .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Could not load bookings.");
-        }
+        if (!response.ok) throw new Error("Could not load bookings.");
         return response.json();
       })
       .then((data) => {
@@ -92,26 +93,30 @@ export default function App() {
       });
   }, [authUser]);
 
-  const handleApprove = async (requestId) => {
-    const requestToApprove = submissions.find(
-      (r) => r.request_id === requestId
-    );
+  useEffect(() => {
+    if (!authUser?.user_id) return;
+    fetchSubmissions();
+  }, [fetchSubmissions]);
 
+  useEffect(() => {
+    if (!authUser?.user_id) return;
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const handleApprove = async (requestId) => {
+    const requestToApprove = submissions.find((r) => r.request_id === requestId);
     if (!requestToApprove?.request_id) return;
 
     setRequestError("");
 
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/requests/${requestId}/approve`,
-        {
-          method: "PATCH",
-          headers: {
-            "X-User-Role": authUser?.role ?? "",
-            "X-User-Id": authUser?.user_id ?? "",
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/requests/${requestId}/approve`, {
+        method: "PATCH",
+        headers: {
+          "X-User-Role": authUser?.role ?? "",
+          "X-User-Id": authUser?.user_id ?? "",
+        },
+      });
 
       if (!response.ok) {
         let errorMessage = "Could not approve the request.";
@@ -122,28 +127,17 @@ export default function App() {
         throw new Error(errorMessage);
       }
 
-      const res = await fetch(`${BACKEND_URL}/requests/bookings`, {
-        headers: {
-          "X-User-Role": authUser.role,
-          "X-User-Id": authUser.user_id,
-        },
-      });
+      // Refetch both — removes it from chef's open requests AND customer's pending list
+      await fetchBookings();
+      await fetchSubmissions();
 
-      const data = await res.json();
-      setBookings(Array.isArray(data) ? data : []);
-
-      setSubmissions((prev) =>
-        prev.filter((r) => r.request_id !== requestId)
-      );
     } catch (error) {
       setRequestError(error.message);
     }
   };
 
   const handleDeny = (requestId) => {
-    setSubmissions((prev) =>
-      prev.filter((r) => r.request_id !== requestId)
-    );
+    setSubmissions((prev) => prev.filter((r) => r.request_id !== requestId));
   };
 
   const handleCancel = async (requestId) => {
@@ -151,31 +145,22 @@ export default function App() {
     setRequestError("");
 
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/requests/${requestId}/cancel`,
-        {
-          method: "PATCH",
-          headers: {
-            "X-User-Role": authUser?.role ?? "",
-            "X-User-Id": authUser?.user_id ?? "",
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/requests/${requestId}/cancel`, {
+        method: "PATCH",
+        headers: {
+          "X-User-Role": authUser?.role ?? "",
+          "X-User-Id": authUser?.user_id ?? "",
+        },
+      });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.detail || "Could not cancel booking.");
       }
 
-      const refreshed = await fetch(`${BACKEND_URL}/requests/bookings`, {
-        headers: {
-          "X-User-Role": authUser.role,
-          "X-User-Id": authUser.user_id,
-        },
-      });
-
-      const data = await refreshed.json();
-      setBookings(data);
+      // Refetch both so UI updates for either role
+      await fetchBookings();
+      await fetchSubmissions();
 
     } catch (error) {
       setRequestError(error.message);
@@ -197,6 +182,7 @@ export default function App() {
                 <ChefForm
                   submissions={submissions}
                   setSubmissions={setSubmissions}
+                  onRequestCreated={fetchSubmissions}
                 />
               }
             />

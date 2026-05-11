@@ -16,9 +16,8 @@ function Navbar({ submissions, bookings }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const activityCount = isChef
-    ? submissions.length + bookings.length
-    : bookings.length;
+  // Both chefs and customers now count submissions in the activity badge
+  const activityCount = submissions.length + bookings.length;
 
   const accentColor = isChef ? "#FF5733" : "#ad9e28";
 
@@ -127,7 +126,7 @@ function Navbar({ submissions, bookings }) {
 
         {isLoggedIn && (
           <NavbarLink as={Link} to="/billing">
-            Billing
+            Financial Hub
           </NavbarLink>
         )}
 
@@ -141,10 +140,7 @@ function Navbar({ submissions, bookings }) {
           Reviews
         </NavbarLink>
 
-        <NavbarLink
-          as={Link}
-          to="/revenue"
-        >
+        <NavbarLink as={Link} to="/revenue">
           Revenue
         </NavbarLink>
 
@@ -169,12 +165,10 @@ function Navbar({ submissions, bookings }) {
               </span>
             }
           >
-
-            {isChef && (
-              <DropdownItem onClick={() => navigate("/activity?tab=requests")}>
-                Open Requests ({submissions.length})
-              </DropdownItem>
-            )}
+            {/* Requests — chefs see "Open Requests", customers see "My Requests" */}
+            <DropdownItem onClick={() => navigate("/activity?tab=requests")}>
+              {isChef ? "Open Requests" : "My Requests"} ({submissions.length})
+            </DropdownItem>
 
             <DropdownItem onClick={() => navigate("/activity?tab=bookings")}>
               Bookings ({bookings.length})

@@ -16,14 +16,14 @@ async def get_transactions(request: Request):
                 request_id AS id,
                 price AS amount,
                 status,
-                created_at
+                created_at AS date,
+                summary
             FROM request
             WHERE customer_id = :user_id
             ORDER BY created_at DESC
             """,
             {"user_id": user_id},
         )
-
     else:
         rows = await database.fetch_all(
             """
@@ -31,7 +31,8 @@ async def get_transactions(request: Request):
                 request_id AS id,
                 price AS amount,
                 status,
-                created_at
+                created_at AS date,
+                summary
             FROM request
             WHERE chef_id = :user_id
             ORDER BY created_at DESC
@@ -39,4 +40,11 @@ async def get_transactions(request: Request):
             {"user_id": user_id},
         )
 
-    return rows
+    transactions = []
+    for row in rows:
+        transaction = dict(row)
+        if transaction.get("status"):
+            transaction["status"] = str(transaction["status"]).lower()
+        transactions.append(transaction)
+    
+    return transactions

@@ -23,7 +23,6 @@ async def admin_revenue_summary(request: Request):
 
     _require_admin(request)
 
-    # ── Overall totals ────────────────────────────────────────────────────
     totals = await database.fetch_one(
         """
         SELECT
@@ -35,7 +34,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── This month ────────────────────────────────────────────────────────
     this_month = await database.fetch_one(
         """
         SELECT
@@ -48,7 +46,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Last month ────────────────────────────────────────────────────────
     last_month = await database.fetch_one(
         """
         SELECT
@@ -61,12 +58,10 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Pending count ─────────────────────────────────────────────────────
     pending = await database.fetch_val(
         "SELECT COUNT(*) FROM request WHERE status = 'pending'"
     )
 
-    # ── Active chefs (chefs with at least 1 accepted/completed booking) ───
     active_chefs = await database.fetch_val(
         """
         SELECT COUNT(DISTINCT chef_id)
@@ -76,12 +71,10 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Total registered chefs ────────────────────────────────────────────
     total_chefs = await database.fetch_val(
         "SELECT COUNT(*) FROM chef_data"
     )
 
-    # ── Monthly breakdown — last 6 months ─────────────────────────────────
     monthly_rows = await database.fetch_all(
         """
         SELECT
@@ -100,7 +93,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Also fetch last-period monthly for comparison ─────────────────────
     last_period_rows = await database.fetch_all(
         """
         SELECT
@@ -117,7 +109,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Top chefs by revenue ──────────────────────────────────────────────
     top_chefs = await database.fetch_all(
         """
         SELECT
@@ -138,7 +129,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── Revenue by status (for donut) ─────────────────────────────────────
     by_status = await database.fetch_all(
         """
         SELECT
@@ -151,7 +141,6 @@ async def admin_revenue_summary(request: Request):
         """
     )
 
-    # ── MoM calculation ───────────────────────────────────────────────────
     this_rev  = float(this_month["revenue"])
     last_rev  = float(last_month["revenue"])
     mom = round(((this_rev - last_rev) / last_rev) * 100, 1) if last_rev > 0 else 0

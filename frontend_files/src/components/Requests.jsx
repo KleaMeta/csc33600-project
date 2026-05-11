@@ -3,7 +3,7 @@ import { useEffect } from "react";
 const FONT_URL =
   "https://fonts.googleapis.com/css2?family=Special+Elite&display=swap";
 
-function RequestTicket({ req, index, handleApprove, handleDeny }) {
+function RequestTicket({ req, index, handleApprove, handleDeny, isChef }) {
   return (
     <div style={{
       background: "#FAEEDA",
@@ -11,8 +11,8 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
       borderRadius: "12px",
       position: "relative",
       overflow: "visible",
-      marginBottom: "0",
     }}>
+
       <div style={{
         position: "absolute", top: "1rem", right: "1rem",
         width: 64, height: 64, borderRadius: "50%",
@@ -24,7 +24,9 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
           fontFamily: "'Special Elite', monospace",
           fontSize: 10, color: "#854F0B",
           textAlign: "center", lineHeight: 1.2,
-        }}>PENDING<br />REVIEW</span>
+        }}>
+          PENDING{"\n"}REVIEW
+        </span>
       </div>
 
       <div style={{ padding: "1rem 1.25rem 0.75rem" }}>
@@ -34,8 +36,12 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
         </div>
 
         <div style={{ marginBottom: 10 }}>
-          <div style={labelStyle}>Requested chef</div>
-          <div style={valueStyle}>{req.chef_id ?? "Any chef"}</div>
+          <div style={labelStyle}>{isChef ? "Requested by" : "Chef"}</div>
+          <div style={valueStyle}>
+            {isChef
+              ? (req.customer_id ?? "Unknown customer")
+              : (req.chef_id ?? "Any available chef")}
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -44,8 +50,8 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
             <div style={valueStyle}>{req.date}</div>
           </div>
           <div>
-            <div style={labelStyle}>Price</div>
-            <div style={valueStyle}>{req.price}</div>
+            <div style={labelStyle}>Budget</div>
+            <div style={valueStyle}>${req.price}</div>
           </div>
         </div>
 
@@ -55,10 +61,7 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
         </div>
       </div>
 
-      <div style={{
-        borderTop: "2px dashed #EF9F27",
-        position: "relative",
-      }}>
+      <div style={{ borderTop: "2px dashed #EF9F27", position: "relative" }}>
         <span style={notchStyle("left")} />
         <span style={notchStyle("right")} />
       </div>
@@ -68,32 +71,37 @@ function RequestTicket({ req, index, handleApprove, handleDeny }) {
           <div>
             <div style={labelStyle}>Ingredients</div>
             <div style={{ ...valueStyle, fontSize: 13 }}>
-              {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients}
+              {Array.isArray(req.ingredients) ? req.ingredients.join(", ") : req.ingredients || "None"}
             </div>
           </div>
-
           <div>
             <div style={labelStyle}>Equipment</div>
             <div style={{ ...valueStyle, fontSize: 13 }}>
-              {Array.isArray(req.equipment) ? req.equipment.join(", ") : req.equipment}
+              {Array.isArray(req.equipment) ? req.equipment.join(", ") : req.equipment || "None"}
             </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => handleApprove(req.request_id)} style={approveBtnStyle}>
-            ✓ Approve
-          </button>
-          <button onClick={() => handleDeny(req.request_id)} style={denyBtnStyle}>
-            ✕ Deny
-          </button>
-        </div>
+        {isChef ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => handleApprove(req.request_id)} style={approveBtnStyle}>
+              ✓ Approve
+            </button>
+            <button onClick={() => handleDeny(req.request_id)} style={denyBtnStyle}>
+              ✕ Deny
+            </button>
+          </div>
+        ) : (
+          <div style={statusBadgeStyle}>
+            ⏳ Awaiting chef approval
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function Requests({ submissions = [], handleApprove, handleDeny, requestError }) {
+function Requests({ submissions = [], handleApprove, handleDeny, requestError, isChef }) {
   useEffect(() => {
     if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
       const link = document.createElement("link");
@@ -104,37 +112,43 @@ function Requests({ submissions = [], handleApprove, handleDeny, requestError })
   }, []);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FFF8ED", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "2.5rem 2rem" }}>
-        <p style={smallHeader}>Chef dashboard</p>
-        <h1 style={title}>Open requests</h1>
-        <p style={subtitle}>Review and approve incoming customer requests.</p>
+    <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <p style={smallHeader}>{isChef ? "Chef dashboard" : "Your requests"}</p>
+      <h2 style={title}>{isChef ? "Open requests" : "My requests"}</h2>
+      <p style={subtitle}>
+        {isChef
+          ? "Review and approve incoming customer requests."
+          : "Track the status of your chef booking requests."}
+      </p>
 
-        {requestError && <p style={{ color: "#A32D2D" }}>{requestError}</p>}
+      {requestError && <p style={{ color: "#A32D2D", marginBottom: "1rem" }}>{requestError}</p>}
 
-        {submissions.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem 0" }}>
-            <i className="ti ti-chef-hat" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
-            <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
-              The ticket rail is empty...
-            </p>
-            <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
-              When customers submit requests, they'll appear here.
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            {submissions.map((req) => (
-              <RequestTicket
-                key={req.request_id}
-                req={req}
-                handleApprove={handleApprove}
-                handleDeny={handleDeny}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {submissions.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "3rem 0" }}>
+          <i className="ti ti-chef-hat" style={{ fontSize: 48, color: "#EF9F27" }} aria-hidden="true" />
+          <p style={{ fontSize: 18, fontWeight: 500, color: "#412402", margin: "1rem 0 0.5rem" }}>
+            {isChef ? "The ticket rail is empty..." : "No requests yet"}
+          </p>
+          <p style={{ fontSize: 14, color: "#633806", margin: 0 }}>
+            {isChef
+              ? "When customers submit requests, they'll appear here."
+              : "Once you hire a chef, your requests will appear here."}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {submissions.map((req, index) => (
+            <RequestTicket
+              key={req.request_id}
+              req={req}
+              index={index}
+              handleApprove={handleApprove}
+              handleDeny={handleDeny}
+              isChef={isChef}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -158,6 +172,7 @@ const idStyle = {
   fontFamily: "'Special Elite', monospace",
   fontSize: 13,
   color: "#BA7517",
+  marginBottom: 10,
 };
 
 const approveBtnStyle = {
@@ -182,6 +197,17 @@ const denyBtnStyle = {
   fontWeight: 500,
 };
 
+const statusBadgeStyle = {
+  display: "inline-block",
+  background: "#FFF3DC",
+  border: "0.5px solid #EF9F27",
+  color: "#854F0B",
+  fontSize: 13,
+  padding: "6px 14px",
+  borderRadius: 8,
+  fontWeight: 500,
+};
+
 const notchStyle = (side) => ({
   width: 14,
   height: 14,
@@ -200,19 +226,21 @@ const smallHeader = {
   color: "#BA7517",
   fontWeight: 500,
   marginBottom: "0.4rem",
+  margin: 0,
 };
 
 const title = {
   fontFamily: "'Pacifico', cursive",
-  fontSize: 32,
+  fontSize: 26,
   color: "#412402",
-  margin: "0 0 0.5rem",
+  margin: "0.25rem 0 0.4rem",
+  fontWeight: 400,
 };
 
 const subtitle = {
-  fontSize: 15,
+  fontSize: 14,
   color: "#633806",
-  margin: "0 0 2rem",
+  margin: "0 0 1.5rem",
 };
 
 export default Requests;

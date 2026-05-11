@@ -11,11 +11,6 @@ from app.schemas.banking import (
 
 router = APIRouter(prefix="/api/banking", tags=["banking"])
 
-
-# ---------------------------------------------------
-# CUSTOMER PAYMENT METHODS
-# ---------------------------------------------------
-
 @router.get("/cards")
 async def get_cards(request: Request):
     _, user_id = require_role(request, {"customer"})
@@ -138,11 +133,6 @@ async def delete_card(
     return {
         "message": "Card deleted successfully."
     }
-
-
-# ---------------------------------------------------
-# CHEF PAYOUT / BANK INFO
-# ---------------------------------------------------
 
 @router.get("/payout")
 async def get_payout_info(request: Request):
