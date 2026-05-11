@@ -3,11 +3,13 @@ CREATE EXTENSION vector;
 -- enums
 CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'rejected', 'expired', 'completed');
 CREATE TYPE user_type AS ENUM ('chef', 'customer');
-
+CREATE TYPE user_status AS ENUM ('active', 'deleted');
+CREATE TYPE payment_info_status AS ENUM ('active', 'deleted', 'edited');
 
 CREATE TABLE "user" (
-    user_id varchar(255) PRIMARY KEY NOT NULL,
+    user_id varchar(255) PRIMARY KEY,
     type_of_user user_type NOT NULL,
+    status user_status NOT NULL DEFAULT 'active',
     name varchar(255) NOT NULL,
     email varchar(255) NOT NULL UNIQUE,
     address varchar(255) NOT NULL,
@@ -29,8 +31,10 @@ CREATE TABLE chef_data (
 );
 
 CREATE TABLE chef_bank_info (
-    bank_payment_id int PRIMARY KEY NOT NULL,
+    bank_payment_id int PRIMARY KEY,
     chef_id varchar(255) NOT NULL,
+    created_at timestamp NOT NULL,
+    status payment_info_status NOT NULL DEFAULT 'active',
     account_number varchar(255) NOT NULL,
     routing_number varchar(10) NOT NULL,
     FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id)
@@ -40,8 +44,10 @@ CREATE TABLE chef_bank_info (
 
 
 CREATE TABLE payment_info (
-    payment_id int PRIMARY KEY NOT NULL,
+    payment_id int PRIMARY KEY,
     user_id varchar(255) NOT NULL,
+    created_at timestamp NOT NULL,
+    status payment_info_status NOT NULL DEFAULT 'active',
     name_on_card varchar(255) NOT NULL,
     cc_number varchar(255) NOT NULL,
     exp_month smallint NOT NULL,
@@ -51,11 +57,12 @@ CREATE TABLE payment_info (
 );
 
 CREATE TABLE chef_sponsorship (
-    sponsorship_id numeric PRIMARY KEY NOT NULL,
+    sponsorship_id int PRIMARY KEY,
     chef_id varchar(255) NOT NULL,
     price numeric NOT NULL,
-    start_date date NOT NULL,
-    end_date date NOT NULL,
+    purchase_timestamp timestamp NOT NULL,
+    start_date timestamp NOT NULL,
+    end_date timestamp NOT NULL,
     payment_info_used_id int NOT NULL,
     FOREIGN KEY (chef_id) REFERENCES chef_data(chef_id),
     FOREIGN KEY (payment_info_used_id) REFERENCES payment_info(payment_id)
@@ -63,7 +70,7 @@ CREATE TABLE chef_sponsorship (
 
 
 CREATE TABLE review (
-    review_id int PRIMARY KEY NOT NULL,
+    review_id int PRIMARY KEY,
     num_stars smallint NOT NULL,
     review_content varchar(255) NOT NULL,
     reviewer_id varchar(255) NOT NULL,
@@ -78,7 +85,7 @@ CREATE TABLE review (
 
 
 CREATE TABLE request (
-    request_id int PRIMARY KEY NOT NULL,
+    request_id int PRIMARY KEY,
     customer_id varchar(255) NOT NULL,
     chef_id varchar(255),
     status request_status NOT NULL DEFAULT 'pending',
@@ -165,3 +172,29 @@ BEFORE INSERT OR UPDATE OF price
 ON request
 FOR EACH ROW
 EXECUTE FUNCTION set_commission();
+
+
+CREATE OR REPLACE FUNCTION enforce_chef_user_type()
+RETURNS TRIGGER AS $$
+DECLARE
+    user_type_value user_type;
+BEGIN
+    SELECT type_of_user
+    INTO user_type_value
+    FROM "user"
+    WHERE user_id = NEW.chef_id;
+
+    IF user_type_value <> 'chef' THEN
+        RAISE EXCEPTION 'User % is not a chef (type is %)', NEW.chef_id, user_type_value;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trigger_enforce_chef_user_type
+BEFORE INSERT OR UPDATE OF chef_id
+ON chef_data
+FOR EACH ROW
+EXECUTE FUNCTION enforce_chef_user_type();

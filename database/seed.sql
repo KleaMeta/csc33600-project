@@ -53,28 +53,28 @@ INSERT INTO chef_data (chef_id, sponsor_score, food_specialty) VALUES
 ('chef_15', 10.0, 'Spanish Tapas');
 
 
--- 4. Payment Info
+-- 4. Payment Info (FIXED: added created_at)
 INSERT INTO payment_info (
-    payment_id, user_id, name_on_card, cc_number, exp_month, exp_year, cvc
+    payment_id, user_id, created_at, name_on_card, cc_number, exp_month, exp_year, cvc
 ) VALUES
-(101, 'cust_01', 'Alice Waters', '4111222233334444', 12, 2028, 123),
-(102, 'cust_02', 'David Chang', '5222333344445555', 5, 2027, 456);
+(101, 'cust_01', '2026-05-01 10:00:00', 'Alice Waters', '4111222233334444', 12, 2028, 123),
+(102, 'cust_02', '2026-05-02 11:00:00', 'David Chang', '5222333344445555', 5, 2027, 456);
 
 
--- 5. Chef Bank Info
+-- 5. Chef Bank Info (FIXED: added created_at)
 INSERT INTO chef_bank_info (
-    bank_payment_id, chef_id, account_number, routing_number
+    bank_payment_id, chef_id, created_at, account_number, routing_number
 ) VALUES
-(501, 'chef_01', '987654321', '123456789'),
-(502, 'chef_02', '123456789', '987654321');
+(501, 'chef_01', '2026-05-01 09:00:00', '987654321', '123456789'),
+(502, 'chef_02', '2026-05-02 09:00:00', '123456789', '987654321');
 
 
--- 6. Chef Sponsorship
+-- 6. Chef Sponsorship (FIXED: added purchase_timestamp)
 INSERT INTO chef_sponsorship (
-    sponsorship_id, chef_id, price, start_date, end_date, payment_info_used_id
+    sponsorship_id, chef_id, price, purchase_timestamp, start_date, end_date, payment_info_used_id
 ) VALUES
-(701, 'chef_05', 199.00, '2026-01-01', '2027-01-01', 101),
-(702, 'chef_09', 149.00, '2026-03-15', '2026-09-15', 102);
+(701, 'chef_05', 199.00, '2026-01-01 12:00:00', '2026-01-01', '2027-01-01', 101),
+(702, 'chef_09', 149.00, '2026-03-15 12:00:00', '2026-03-15', '2026-09-15', 102);
 
 
 -- 7. Requests
