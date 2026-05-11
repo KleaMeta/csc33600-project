@@ -177,3 +177,63 @@ def test_admin_revenue_summary_includes_commission_and_sponsorship(client, monke
     assert payload["totals"]["developer_revenue"] == 650.0
     assert payload["this_month"]["sponsorship_revenue"] == 200.0
     assert payload["this_month"]["developer_revenue"] == 260.0
+
+
+def test_admin_commission_transactions_requires_admin(client):
+    response = client.get(
+        "/admin/revenue/commission-transactions",
+        headers={"X-User-Role": "chef", "X-User-Id": "chef_01"},
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "You are not allowed to do this."
+
+
+def test_admin_detail_transaction_endpoints_return_rows(client, monkeypatch):
+    async def fake_fetch_all(query, values=None):
+        if "FROM request r" in query:
+            return [
+                {
+                    "request_id": 1012,
+                    "customer_id": "cust_03",
+                    "customer_name": "Julia Child",
+                    "chef_id": "chef_15",
+                    "chef_name": "José Andrés",
+                    "status": "completed",
+                    "created_at": "2026-05-06 18:50:00",
+                    "price": 500,
+                    "commission": 75,
+                    "summary": "Large birthday dinner",
+                }
+            ]
+        if "FROM chef_sponsorship s" in query:
+            return [
+                {
+                    "sponsorship_id": 707,
+                    "chef_id": "chef_05",
+                    "chef_name": "Missy Robbins",
+                    "price": 219,
+                    "purchase_timestamp": "2026-05-03 13:05:00",
+                    "start_date": "2026-05-03",
+                    "end_date": "2026-11-03",
+                    "payment_info_used_id": 106,
+                }
+            ]
+        raise AssertionError(f"Unexpected fetch_all query: {query}")
+
+    monkeypatch.setattr(session.database, "fetch_all", fake_fetch_all)
+
+    headers = {"X-User-Role": "admin", "X-User-Id": "admin_01"}
+
+    commission_response = client.get("/admin/revenue/commission-transactions", headers=headers)
+    assert commission_response.status_code == 200
+    commission_payload = commission_response.json()
+    assert commission_payload["count"] == 1
+    assert commission_payload["transactions"][0]["request_id"] == 1012
+    assert commission_payload["transactions"][0]["commission"] == 75.0
+
+    sponsorship_response = client.get("/admin/revenue/sponsorship-transactions", headers=headers)
+    assert sponsorship_response.status_code == 200
+    sponsorship_payload = sponsorship_response.json()
+    assert sponsorship_payload["count"] == 1
+    assert sponsorship_payload["transactions"][0]["sponsorship_id"] == 707
+    assert sponsorship_payload["transactions"][0]["price"] == 219.0

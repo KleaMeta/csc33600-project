@@ -284,3 +284,89 @@ async def admin_revenue_summary(request: Request):
             for row in by_status
         ],
     }
+
+
+@router.get("/admin/revenue/commission-transactions")
+async def admin_commission_transactions(request: Request):
+    """Return accepted/completed request rows that make up commission totals."""
+    require_role(request, {"admin"})
+
+    rows = await database.fetch_all(
+        """
+        SELECT
+            r.request_id,
+            r.customer_id,
+            customer_u.name AS customer_name,
+            r.chef_id,
+            chef_u.name AS chef_name,
+            r.status,
+            r.created_at,
+            r.price,
+            r.commission,
+            r.summary
+        FROM request r
+        LEFT JOIN "user" chef_u ON chef_u.user_id = r.chef_id
+        LEFT JOIN "user" customer_u ON customer_u.user_id = r.customer_id
+        WHERE r.status IN ('accepted', 'completed')
+        ORDER BY r.created_at DESC, r.request_id DESC
+        """
+    )
+
+    return {
+        "count": len(rows),
+        "transactions": [
+            {
+                "request_id": row["request_id"],
+                "customer_id": row["customer_id"],
+                "customer_name": row["customer_name"],
+                "chef_id": row["chef_id"],
+                "chef_name": row["chef_name"],
+                "status": row["status"],
+                "created_at": str(row["created_at"]),
+                "price": float(row["price"] or 0),
+                "commission": float(row["commission"] or 0),
+                "summary": row["summary"],
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.get("/admin/revenue/sponsorship-transactions")
+async def admin_sponsorship_transactions(request: Request):
+    """Return sponsorship rows that make up sponsorship totals."""
+    require_role(request, {"admin"})
+
+    rows = await database.fetch_all(
+        """
+        SELECT
+            s.sponsorship_id,
+            s.chef_id,
+            u.name AS chef_name,
+            s.price,
+            s.purchase_timestamp,
+            s.start_date,
+            s.end_date,
+            s.payment_info_used_id
+        FROM chef_sponsorship s
+        LEFT JOIN "user" u ON u.user_id = s.chef_id
+        ORDER BY s.purchase_timestamp DESC, s.sponsorship_id DESC
+        """
+    )
+
+    return {
+        "count": len(rows),
+        "transactions": [
+            {
+                "sponsorship_id": row["sponsorship_id"],
+                "chef_id": row["chef_id"],
+                "chef_name": row["chef_name"],
+                "price": float(row["price"] or 0),
+                "purchase_timestamp": str(row["purchase_timestamp"]),
+                "start_date": str(row["start_date"]),
+                "end_date": str(row["end_date"]),
+                "payment_info_used_id": row["payment_info_used_id"],
+            }
+            for row in rows
+        ],
+    }
