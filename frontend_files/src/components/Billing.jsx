@@ -443,41 +443,47 @@ export default function Billing() {
     };
 
     const generateInvoice = (transaction) => {
-        const doc = new jsPDF();
+        try {
+            console.log("Generating receipt for:", transaction);
 
-        doc.setFontSize(24);
-        doc.setTextColor(255, 87, 51);
-        doc.text("ChefHire Invoice", 20, 20);
+            const doc = new jsPDF();
 
-        doc.setFontSize(12);
-        doc.setTextColor(65, 36, 2);
-        doc.text(`Invoice #: ${transaction.id || "N/A"}`, 20, 40);
-        doc.text(`Date: ${formatDate(transaction.date)}`, 20, 50);
-        doc.text(`Customer: ${authUser?.name || authUser?.email || "Customer"}`, 20, 60);
+            // Header
+            doc.setFillColor(255, 87, 51);
+            doc.rect(0, 0, 220, 40, 'F');
 
-        doc.line(20, 70, 190, 70);
+            doc.setFontSize(24);
+            doc.setTextColor(255, 255, 255);
+            doc.text("ChefHire", 20, 25);
 
-        doc.autoTable({
-            startY: 80,
-            head: [["Detail", "Information"]],
-            body: [
-                ["Transaction ID", transaction.id || "N/A"],
-                ["Date", formatDate(transaction.date)],
-                ["Status", transaction.status || "Completed"],
-                ["Amount", `$${parseFloat(transaction.amount).toFixed(2)}`],
-                ["Payment Method", `**** ${cardOnFile?.cc_number?.slice(-4) || "XXXX"}`],
-            ],
-            styles: { fontSize: 11, cellPadding: 5 },
-            headStyles: { fillColor: [255, 87, 51], textColor: [255, 255, 255] },
-        });
+            doc.setFontSize(12);
+            doc.text("Payment Receipt", 20, 35);
 
-        const finalY = doc.lastAutoTable.finalY + 20;
-        doc.setFontSize(10);
-        doc.setTextColor(133, 79, 11);
-        doc.text("Thank you for using ChefHire!", 20, finalY);
-        doc.text("For any questions, please contact support@chefhire.com", 20, finalY + 10);
+            // Transaction details (without autoTable)
+            doc.setTextColor(65, 36, 2);
+            doc.setFontSize(11);
+            doc.text(`Invoice Number: ${transaction.id || "N/A"}`, 20, 60);
+            doc.text(`Date: ${formatDate(transaction.date)}`, 20, 70);
+            doc.text(`Customer: ${authUser?.name || authUser?.email || "Customer"}`, 20, 80);
+            doc.text(`Amount: ${formatCurrency(transaction.amount)}`, 20, 90);
+            doc.text(`Status: ${transaction.status || "Completed"}`, 20, 100);
 
-        doc.save(`invoice_${transaction.id}_${Date.now()}.pdf`);
+            // Payment method
+            doc.text(`Payment Method: **** ${cardOnFile?.cc_number?.slice(-4) || "XXXX"}`, 20, 115);
+
+            // Footer
+            doc.setFontSize(10);
+            doc.setTextColor(133, 79, 11);
+            doc.text("Thank you for using Cheffy!", 20, 140);
+
+            // Save
+            doc.save(`receipt_${transaction.id}_${Date.now()}.pdf`);
+
+            console.log("PDF saved successfully");
+        } catch (error) {
+            console.error("Error generating receipt:", error);
+            alert("Failed to generate receipt: " + error.message);
+        }
     };
 
     const maskCardNumber = (cc_number) => {
