@@ -3,3 +3,4 @@ python-dotenv
 databases[postgresql]
 asyncpg
 uvicorn[standard]
+google-genai
