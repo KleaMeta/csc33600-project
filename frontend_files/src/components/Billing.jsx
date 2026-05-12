@@ -454,7 +454,7 @@ export default function Billing() {
 
             doc.setFontSize(24);
             doc.setTextColor(255, 255, 255);
-            doc.text("ChefHire", 20, 25);
+            doc.text("Cheffy", 20, 25);
 
             doc.setFontSize(12);
             doc.text("Payment Receipt", 20, 35);
