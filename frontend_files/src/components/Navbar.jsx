@@ -128,8 +128,14 @@ function Navbar({ submissions, bookings }) {
         </NavbarLink>
 
         {isLoggedIn && (
-          <NavbarLink as={Link} to="/billing">
-            Billing
+          <NavbarLink
+            as={Link}
+            to="/billing"
+            active={false}
+            style={linkStyle("/billing")}
+            {...hoverHandlers("/billing")}
+          >
+            Payment Methods
           </NavbarLink>
         )}
 

@@ -179,6 +179,95 @@ async def get_bookings(request: Request):
 
     return results
 
+# Add these to your existing requests.py
+
+@router.get("/customers/pending")
+async def get_customer_pending_requests(request: Request):
+    """Get customer's pending requests (not yet approved)"""
+    
+    role, customer_id = require_role(request, {"customer"})
+    
+    rows = await database.fetch_all(
+        """
+        SELECT
+            request_id,
+            chef_id,
+            status,
+            created_at,
+            price,
+            summary
+        FROM request
+        WHERE customer_id = :customer_id
+          AND status = 'pending'
+        ORDER BY created_at DESC
+        """,
+        {"customer_id": customer_id},
+    )
+    
+    results = []
+    for row in rows:
+        ingredients_rows = await database.fetch_all(
+            "SELECT ingredient_name FROM request_ingredient WHERE request_id = :request_id",
+            {"request_id": row["request_id"]},
+        )
+        equipment_rows = await database.fetch_all(
+            "SELECT equipment_name FROM request_equipment WHERE request_id = :request_id",
+            {"request_id": row["request_id"]},
+        )
+        
+        results.append({
+            "request_id": row["request_id"],
+            "chef_id": row["chef_id"],
+            "status": row["status"],
+            "date": row["created_at"].strftime("%Y-%m-%d") if row["created_at"] else None,
+            "price": float(row["price"]) if row["price"] else 0,
+            "summary": row["summary"],
+            "ingredients": [r["ingredient_name"] for r in ingredients_rows],
+            "equipment": [r["equipment_name"] for r in equipment_rows],
+        })
+    
+    return results
+
+
+@router.get("/customers/bookings")
+async def get_customer_bookings(request: Request):
+    """Get customer's confirmed bookings"""
+    
+    role, customer_id = require_role(request, {"customer"})
+    
+    rows = await database.fetch_all(
+        """
+        SELECT 
+            r.request_id,
+            r.chef_id,
+            r.status,
+            r.created_at,
+            r.price,
+            r.summary,
+            u.name as chef_name
+        FROM request r
+        LEFT JOIN "user" u ON r.chef_id = u.user_id
+        WHERE r.customer_id = :customer_id
+          AND r.status = 'accepted'
+        ORDER BY r.created_at DESC
+        """,
+        {"customer_id": customer_id},
+    )
+    
+    results = []
+    for row in rows:
+        results.append({
+            "request_id": row["request_id"],
+            "chef_id": row["chef_id"],
+            "chef_name": row["chef_name"] or "Any Chef",
+            "status": row["status"],
+            "date": row["created_at"].strftime("%Y-%m-%d") if row["created_at"] else None,
+            "price": float(row["price"]) if row["price"] else 0,
+            "summary": row["summary"],
+        })
+    
+    return results
+
 @router.patch("/requests/{request_id}/approve")
 async def approve_request(request_id: int, request: Request):
     """Approve a request as the logged-in chef."""
