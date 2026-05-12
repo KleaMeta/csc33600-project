@@ -285,7 +285,6 @@ export default function Billing() {
         cvc: "",
     });
 
-    // Load fonts
     useEffect(() => {
         if (!document.querySelector(`link[href="${FONT_URL}"]`)) {
             const link = document.createElement("link");
@@ -298,7 +297,6 @@ export default function Billing() {
     const isChef = authUser?.role === "chef";
     const isCustomer = authUser?.role === "customer";
 
-    // Load card
     useEffect(() => {
         if (!authUser?.user_id) return;
 
@@ -315,7 +313,6 @@ export default function Billing() {
             .catch(() => { });
     }, [authUser]);
 
-    // Load transactions
     useEffect(() => {
         if (!authUser?.user_id) return;
 
@@ -333,7 +330,6 @@ export default function Billing() {
             .catch(() => setTransactions([]));
     }, [authUser]);
 
-    // Load pending requests (customers only)
     useEffect(() => {
         if (!isCustomer || !authUser?.user_id) return;
 
@@ -348,7 +344,6 @@ export default function Billing() {
             .catch(() => setPendingRequests([]));
     }, [authUser, isCustomer]);
 
-    // Load bookings (customers only)
     useEffect(() => {
         if (!isCustomer || !authUser?.user_id) return;
 
@@ -492,7 +487,6 @@ export default function Billing() {
         return masked.replace(/(.{4})/g, "$1 ").trim();
     };
 
-    // Format card number with spaces for display
     const formatCardNumberWithSpaces = (number) => {
         const digits = number.replace(/\D/g, '');
         return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
@@ -699,7 +693,7 @@ export default function Billing() {
                             </div>
                             <button
                                 onClick={() => {
-                                    // Pre-fill form with existing card data when updating
+
                                     setFormData({
                                         name_on_card: cardOnFile.name_on_card || "",
                                         cc_number: cardOnFile.cc_number || "",
@@ -737,9 +731,9 @@ export default function Billing() {
                                     placeholder="1234 5678 9012 3456"
                                     value={formatCardNumberWithSpaces(formData.cc_number)}
                                     onChange={(e) => {
-                                        // Remove spaces and non-digits for storage
+
                                         const rawValue = e.target.value.replace(/\D/g, '');
-                                        // Limit to 16 digits
+
                                         const limited = rawValue.slice(0, 16);
                                         setFormData({ ...formData, cc_number: limited });
                                     }}
